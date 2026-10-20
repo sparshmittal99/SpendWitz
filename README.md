@@ -1,4 +1,4 @@
-# SpendSense: AI expense tracker
+# SpendWitz: AI expense tracker
 
 Built for how people in India actually pay: bills, UPI and cash. Say *"sabzi 150, chai 20, kal auto 60"* (or type it, in English, Hindi or Hinglish) and it becomes three expenses. Snap a bill or a UPI screenshot and the details fill themselves in. Ask *"How much cash did I spend this month?"* and get an exact answer computed from your own data.
 
@@ -14,7 +14,7 @@ Built for how people in India actually pay: bills, UPI and cash. Say *"sabzi 150
 |---|---|
 | **Type it or say it** | For purchases with no bill (kirana, sabzi, autos). Free text or voice (the browser's Web Speech API, English or Hindi) is split by Gemini into separate expenses, with relative dates ("kal" = yesterday) and payment methods ("gpay" = UPI) resolved. You review them in an editable table before saving. |
 | **Bill & UPI screenshot scanning** | Upload a bill photo, PDF, or a UPI payment screenshot. Gemini's vision model returns structured JSON (merchant/payee, date, items, tax, total, UPI reference). Failed payments and money *received* are rejected. You review before anything is saved. |
-| **Bank statement import** | Upload a bank or credit card statement (PDF, including password-protected ones, Excel or CSV). For spreadsheets the model only identifies the columns, and every date and amount is parsed in Java, straight from the cells. For PDFs the model extracts rows and each amount is checked against the PDF text. The model then cleans up narrations (`UPI/DR/6299…/GUPTA GENERAL/okaxis` → "Gupta General Store") and leaves out non-spending (own-account transfers, card bill payments, investments). ATM withdrawals go to the cash wallet, and transactions already in SpendSense are flagged (same UPI reference, or same amount within a day) before you review and save. A sample statement from a fictional bank is generated on the fly for the demo. |
+| **Bank statement import** | Upload a bank or credit card statement (PDF, including password-protected ones, Excel or CSV). For spreadsheets the model only identifies the columns, and every date and amount is parsed in Java, straight from the cells. For PDFs the model extracts rows and each amount is checked against the PDF text. The model then cleans up narrations (`UPI/DR/6299…/GUPTA GENERAL/okaxis` → "Gupta General Store") and leaves out non-spending (own-account transfers, card bill payments, investments). ATM withdrawals go to the cash wallet, and transactions already in SpendWitz are flagged (same UPI reference, or same amount within a day) before you review and save. A sample statement from a fictional bank is generated on the fly for the demo. |
 | **Cash section** | One-tap entry for everyday cash spends (chai, sabzi, auto, milk, kirana) with no AI needed, plus a cash wallet: record ATM withdrawals and see *cash in hand*. |
 | **Payment methods** | Every expense records UPI / Cash / Card / Net banking. The dashboard shows how you paid, and the assistant can answer cash-only questions. |
 | **AI assistant (agent)** | Ask questions in plain English. The model calls read-only Java tools (`getTotalSpending`, `getTopMerchants`, `getBudgetStatus`, ...) and streams back a Markdown answer. |
@@ -64,7 +64,7 @@ cp .env.example .env          # then put your GEMINI_API_KEY in .env
 ./mvnw spring-boot:run        # starts Postgres+pgvector via compose.yaml automatically
 ```
 
-Open http://localhost:8080 and click **Enter demo account** (demo@spendsense.app / demo1234).
+Open http://localhost:8080 and click **Enter demo account** (demo@spendwitz.app / demo1234).
 
 Run the tests (they start their own pgvector container and never call Gemini):
 
@@ -92,7 +92,7 @@ The demo account is created on first start and reset every night at 03:00 IST.
 ## Project structure
 
 ```
-src/main/java/com/spendsense
+src/main/java/com/spendwitz
 ├── ai/          AiQuotaService, ExpenseIndexer (pgvector), CategorySuggester, ResilientChat
 ├── assistant/   ExpenseTools (LLM tools), AssistantService (streaming agent), controller
 ├── receipt/     ReceiptScanService (bills + UPI screenshots: vision + structured output)

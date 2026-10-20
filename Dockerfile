@@ -5,7 +5,7 @@ COPY .mvn .mvn
 COPY mvnw pom.xml ./
 RUN chmod +x mvnw && ./mvnw -q -B dependency:go-offline
 COPY src src
-RUN ./mvnw -q -B -DskipTests package && cp target/spendsense-*.jar app.jar
+RUN ./mvnw -q -B -DskipTests package && cp target/spendwitz-*.jar app.jar
 
 # ---- Run ----
 FROM eclipse-temurin:21-jre

@@ -13,7 +13,7 @@
     <div th:if="${preview != null}" class="d-flex flex-wrap gap-2 mb-3">
         <span class="cat-badge"><i class="bi bi-receipt text-primary"></i> <span th:text="${form.rows.size()} + ' outgoing transactions'">12 outgoing</span></span>
         <span class="cat-badge" th:if="${preview.duplicates() > 0}"><i class="bi bi-files text-warning"></i>
-            <span th:text="${preview.duplicates()} + ' already in SpendSense (unticked)'">2 duplicates</span></span>
+            <span th:text="${preview.duplicates()} + ' already in SpendWitz (unticked)'">2 duplicates</span></span>
         <span class="cat-badge" th:if="${!preview.skipped().isEmpty()}"><i class="bi bi-skip-forward text-secondary"></i>
             <span th:text="${preview.skipped().size()} + ' skipped (not spending)'">3 skipped</span></span>
         <span class="cat-badge" th:if="${preview.creditsIgnored() > 0}"><i class="bi bi-arrow-down-left text-success"></i>

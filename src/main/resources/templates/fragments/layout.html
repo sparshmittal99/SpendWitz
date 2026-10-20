@@ -3,8 +3,8 @@
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="SpendSense: an AI expense tracker. Scan receipts, ask questions about your spending in plain English, and get insights.">
-    <title th:text="${title} + ' · SpendSense'">SpendSense</title>
+    <meta name="description" content="SpendWitz: an AI expense tracker. Scan receipts, ask questions about your spending in plain English, and get insights.">
+    <title th:text="${title} + ' · SpendWitz'">SpendWitz</title>
     <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}">
     <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -19,7 +19,7 @@
 <nav th:fragment="navbar(active)" class="navbar navbar-expand-xl app-navbar sticky-top">
     <div class="container">
         <a class="navbar-brand brand" th:href="${currentUser != null} ? '/dashboard' : '/'">
-            <img src="/img/logo.svg" class="brand-mark" width="34" height="34" alt=""> SpendSense
+            <img src="/img/logo.svg" class="brand-mark" width="34" height="34" alt=""> SpendWitz
         </a>
         <th:block th:if="${currentUser != null}">
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
@@ -76,7 +76,7 @@
 
 <footer th:fragment="footer" class="app-footer">
     <div class="container d-flex flex-wrap justify-content-between gap-2">
-        <span>SpendSense · AI expense tracker built with Spring Boot, Spring AI, Gemini &amp; pgvector</span>
+        <span>SpendWitz · AI expense tracker built with Spring Boot, Spring AI, Gemini &amp; pgvector</span>
         <span>Demo project · don't enter real financial data</span>
     </div>
 </footer>

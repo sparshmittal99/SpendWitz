@@ -8,10 +8,10 @@
 		<version>4.1.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.spendsense</groupId>
-	<artifactId>spendsense</artifactId>
+	<groupId>com.spendwitz</groupId>
+	<artifactId>spendwitz</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>spendsense</name>
+	<name>spendwitz</name>
 	<description>AI expense tracker</description>
 	<url/>
 	<licenses>

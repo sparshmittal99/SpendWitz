@@ -3,13 +3,13 @@ services:
   postgres:
     image: pgvector/pgvector:pg17
     environment:
-      POSTGRES_DB: spendsense
-      POSTGRES_USER: spendsense
-      POSTGRES_PASSWORD: spendsense
+      POSTGRES_DB: spendwitz
+      POSTGRES_USER: spendwitz
+      POSTGRES_PASSWORD: spendwitz
     ports:
       - "5432:5432"
     volumes:
-      - spendsense-data:/var/lib/postgresql/data
+      - spendwitz-data:/var/lib/postgresql/data
 
 volumes:
-  spendsense-data:
+  spendwitz-data:

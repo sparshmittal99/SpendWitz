@@ -74,7 +74,7 @@ Run the tests (they start their own pgvector container and never call Gemini):
 
 ## Deploy for free (Render + Neon)
 
-1. **Database:** create a free project on [Neon](https://neon.tech). Neon supports pgvector, and the Flyway migration enables it. Copy the host, database, user and password.
+1. **Database:** create a free project on [Neon](https://neon.tech). Neon supports pgvector, and the Flyway migration enables it. In **Connect**, turn **Connection pooling off** (use the direct connection: Flyway and the pgvector session settings need it), then copy the host, database, user and password.
 2. **App:** push this repo to GitHub. On [Render](https://render.com), choose **New > Blueprint** and select the repo; `render.yaml` creates a free Docker web service.
 3. Set the environment variables in Render:
 

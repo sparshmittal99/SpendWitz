@@ -2,7 +2,7 @@
 
 Built for how people in India actually pay: bills, UPI and cash. Say *"sabzi 150, chai 20, kal auto 60"* (or type it, in English, Hindi or Hinglish) and it becomes three expenses. Snap a bill or a UPI screenshot and the details fill themselves in. Ask *"How much cash did I spend this month?"* and get an exact answer computed from your own data.
 
-**Live demo:** https://YOUR-APP.onrender.com (click **Enter demo account**, no sign-up needed)
+**Live demo:** [spendwitz.onrender.com](https://spendwitz.onrender.com/) (click **Enter demo account**, no sign-up needed)
 
 > The demo runs on free tiers. The first request after a period of inactivity can take up to a minute while the server wakes up.
 

@@ -2,41 +2,62 @@ package com.spendwitz.ai;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.ObjectProvider;
 
 import reactor.core.publisher.Flux;
 
 class ResilientChatTest {
 
+    private static final String BIG = "openai/gpt-oss-120b";
+    private static final String SMALL = "openai/gpt-oss-20b";
+
     private final ChatClient gemini = mock(ChatClient.class);
     private final ChatClient groq = mock(ChatClient.class);
     private final ChatClient.ChatClientRequestSpec geminiPrompt = mock(ChatClient.ChatClientRequestSpec.class);
     private final ChatClient.ChatClientRequestSpec groqPrompt = mock(ChatClient.ChatClientRequestSpec.class);
+    private final ChatClient.ChatClientRequestSpec bigPrompt = mock(ChatClient.ChatClientRequestSpec.class);
+    private final ChatClient.ChatClientRequestSpec smallPrompt = mock(ChatClient.ChatClientRequestSpec.class);
 
     ResilientChatTest() {
         when(gemini.prompt()).thenReturn(geminiPrompt);
         when(groq.prompt()).thenReturn(groqPrompt);
+        when(groqPrompt.options(argThat(b -> isModel(b, BIG)))).thenReturn(bigPrompt);
+        when(groqPrompt.options(argThat(b -> isModel(b, SMALL)))).thenReturn(smallPrompt);
     }
 
     @Test
-    void answersWithGroqWhenItWorks() {
-        var answer = chat(groq).streamPreferFast(answer(Flux.just("fast ", "answer"), Flux.just("slow")));
+    void answersWithTheFirstGroqModelWhenItWorks() {
+        var answer = chat(groq, BIG + "," + SMALL).streamPreferFast(answers(Map.of(
+                bigPrompt, Flux.just("fast ", "answer"), smallPrompt, Flux.just("small"), geminiPrompt, Flux.just("slow"))));
         assertThat(answer.collectList().block()).containsExactly("fast ", "answer");
     }
 
     @Test
-    void handsTheQuestionToGeminiWhenGroqFailsBeforeAnswering() {
-        var groqDown = Flux.<String>error(new IllegalStateException("429 rate limited"));
-        var answer = chat(groq).streamPreferFast(answer(groqDown, Flux.just("gemini answer")));
+    void triesTheNextGroqModelWhenOneIsOutOfQuota() {
+        var answer = chat(groq, BIG + ", " + SMALL).streamPreferFast(answers(Map.of(
+                bigPrompt, Flux.error(new IllegalStateException("429 rate limited")),
+                smallPrompt, Flux.just("small answer"), geminiPrompt, Flux.just("slow"))));
+        assertThat(answer.collectList().block()).containsExactly("small answer");
+    }
+
+    @Test
+    void handsTheQuestionToGeminiWhenEveryGroqModelFails() {
+        var answer = chat(groq, BIG + "," + SMALL).streamPreferFast(answers(Map.of(
+                bigPrompt, Flux.error(new IllegalStateException("429 rate limited")),
+                smallPrompt, Flux.error(new IllegalStateException("503 unavailable")),
+                geminiPrompt, Flux.just("gemini answer"))));
         assertThat(answer.collectList().block()).containsExactly("gemini answer");
     }
 
@@ -44,7 +65,8 @@ class ResilientChatTest {
     void neverMixesTwoAnswersWhenGroqFailsHalfway() {
         var halfAnswer = Flux.just("You spent").concatWith(Flux.error(new IllegalStateException("connection reset")));
         List<String> received = new ArrayList<>();
-        var answer = chat(groq).streamPreferFast(answer(halfAnswer, Flux.just("gemini answer")))
+        var answer = chat(groq, BIG + "," + SMALL).streamPreferFast(answers(Map.of(
+                        bigPrompt, halfAnswer, smallPrompt, Flux.just("small"), geminiPrompt, Flux.just("gemini"))))
                 .doOnNext(received::add);
         assertThatThrownBy(answer::blockLast).hasMessageContaining("connection reset");
         assertThat(received).containsExactly("You spent");
@@ -52,23 +74,27 @@ class ResilientChatTest {
 
     @Test
     void usesGeminiWhenNoGroqKeyIsSet() {
-        var answer = chat(null).streamPreferFast(answer(Flux.just("fast"), Flux.just("gemini answer")));
+        var answer = chat(null, BIG).streamPreferFast(answers(Map.of(geminiPrompt, Flux.just("gemini answer"))));
         assertThat(answer.collectList().block()).containsExactly("gemini answer");
     }
 
     @SuppressWarnings("unchecked")
-    private ResilientChat chat(ChatClient fast) {
+    private ResilientChat chat(ChatClient fast, String models) {
         ObjectProvider<ChatClient> provider = mock(ObjectProvider.class);
         when(provider.getIfAvailable()).thenReturn(fast);
-        return new ResilientChat(gemini, provider, "");
+        return new ResilientChat(gemini, provider, models, "");
     }
 
     /** Answers differently depending on which model the request was sent to. */
-    private Function<ChatClient.ChatClientRequestSpec, Flux<String>> answer(Flux<String> fromGroq,
-            Flux<String> fromGemini) {
+    private static Function<ChatClient.ChatClientRequestSpec, Flux<String>> answers(
+            Map<ChatClient.ChatClientRequestSpec, Flux<String>> byPrompt) {
         return prompt -> {
-            assertThat(prompt).isIn(groqPrompt, geminiPrompt);
-            return prompt == groqPrompt ? fromGroq : fromGemini;
+            assertThat(byPrompt).containsKey(prompt);
+            return byPrompt.get(prompt);
         };
+    }
+
+    private static boolean isModel(Object builder, String model) {
+        return builder instanceof OpenAiChatOptions.Builder b && model.equals(b.build().getModel());
     }
 }

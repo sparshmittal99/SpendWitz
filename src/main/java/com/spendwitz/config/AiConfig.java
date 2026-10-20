@@ -40,13 +40,14 @@ public class AiConfig {
     @Bean
     @ConditionalOnExpression("!'${spendwitz.ai.groq.api-key:}'.isBlank()")
     ChatClient fastChatClient(@Value("${spendwitz.ai.groq.api-key}") String apiKey,
-            @Value("${spendwitz.ai.groq.base-url}") String baseUrl, @Value("${spendwitz.ai.groq.model}") String model,
+            @Value("${spendwitz.ai.groq.base-url}") String baseUrl, @Value("${spendwitz.ai.groq.model}") String models,
             ToolCallingManager toolCallingManager, ObjectProvider<ObservationRegistry> observationRegistry) {
         OpenAiChatModel groq = OpenAiChatModel.builder()
                 .options(OpenAiChatOptions.builder()
                         .baseUrl(baseUrl)
                         .apiKey(apiKey)
-                        .model(model)
+                        // ResilientChat picks the model per request from the list; the first is the default
+                        .model(models.split(",")[0].trim())
                         .temperature(0.2)
                         // Fail fast so ResilientChat can hand the question to Gemini instead
                         .timeout(Duration.ofSeconds(30))

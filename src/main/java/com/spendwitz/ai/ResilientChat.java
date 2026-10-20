@@ -1,5 +1,7 @@
 package com.spendwitz.ai;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
@@ -7,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.google.genai.GoogleGenAiChatOptions;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,32 +30,45 @@ public class ResilientChat {
 
     private final ChatClient chatClient;
     private final ChatClient fastChatClient;
+    private final List<String> fastModels;
     private final String fallbackModel;
 
     public ResilientChat(ChatClient chatClient, @Qualifier("fastChatClient") ObjectProvider<ChatClient> fastChatClient,
+            @Value("${spendwitz.ai.groq.model:}") String fastModels,
             @Value("${spendwitz.ai.fallback-model:}") String fallbackModel) {
         this.chatClient = chatClient;
         this.fastChatClient = fastChatClient.getIfAvailable();
+        this.fastModels = Arrays.stream(fastModels.split(",")).map(String::trim).filter(m -> !m.isEmpty()).toList();
         this.fallbackModel = fallbackModel;
     }
 
     /**
-     * Streams from the fast chat model (Groq) when one is configured. If it fails before sending any text (rate
-     * limit, outage, a malformed tool call), the same request goes to Gemini, with its own fallback model.
+     * Streams from the fast chat models (Groq) when configured, trying each in order: Groq's free quota is per
+     * model, so when one runs out the next answers. If they all fail before sending any text (rate limit, outage,
+     * a malformed tool call), the same request goes to Gemini, with its own fallback model.
      */
     public Flux<String> streamPreferFast(Function<ChatClient.ChatClientRequestSpec, Flux<String>> request) {
-        if (fastChatClient == null) {
+        if (fastChatClient == null || fastModels.isEmpty()) {
             return stream(request);
         }
+        return streamFast(request, 0);
+    }
+
+    private Flux<String> streamFast(Function<ChatClient.ChatClientRequestSpec, Flux<String>> request, int index) {
+        if (index == fastModels.size()) {
+            return stream(request);
+        }
+        String model = fastModels.get(index);
         AtomicBoolean started = new AtomicBoolean();
-        return Flux.defer(() -> request.apply(fastChatClient.prompt()))
+        return Flux.defer(() -> request.apply(fastChatClient.prompt().options(OpenAiChatOptions.builder().model(model))))
                 .doOnNext(chunk -> started.set(true))
                 .onErrorResume(e -> {
                     if (started.get()) {
                         return Flux.error(e);
                     }
-                    log.info("Fast chat model failed ({}), answering with Gemini", e.toString());
-                    return stream(request);
+                    String next = index + 1 < fastModels.size() ? fastModels.get(index + 1) : "Gemini";
+                    log.info("Groq model {} failed ({}), trying {}", model, e.toString(), next);
+                    return streamFast(request, index + 1);
                 });
     }
 

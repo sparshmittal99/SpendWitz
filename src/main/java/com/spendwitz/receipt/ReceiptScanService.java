@@ -49,6 +49,7 @@ public class ReceiptScanService {
     private static final Logger log = LoggerFactory.getLogger(ReceiptScanService.class);
 
     private static final int PARALLEL_SCANS = 3;
+    private static final int MAX_NOTE = 500;
     private static final DateTimeFormatter SHORT_DATE = DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH);
 
     public static final Set<String> SUPPORTED_TYPES = Set.of(
@@ -187,6 +188,35 @@ public class ReceiptScanService {
                 + e.getAmount().toPlainString() + " on " + e.getExpenseDate().format(SHORT_DATE)).orElse(null);
     }
 
+    /**
+     * Adds what was bought to the note ("Items: Veg Momos ×2 ₹180, Coke ₹40"), so the bill turns up when searching
+     * for an item and the items stay visible wherever the note is shown. Kept within the note's 500 characters.
+     */
+    static String withItems(String note, List<ExpenseForm.ItemForm> items, String symbol) {
+        if (items.isEmpty()) {
+            return note;
+        }
+        String prefix = (note == null || note.isBlank() ? "" : note + " · ") + "Items: ";
+        StringBuilder text = new StringBuilder(prefix);
+        for (int i = 0; i < items.size(); i++) {
+            ExpenseForm.ItemForm item = items.get(i);
+            StringBuilder entry = new StringBuilder(item.getName());
+            if (item.getQuantity() != null && item.getQuantity().compareTo(BigDecimal.ONE) != 0) {
+                entry.append(" ×").append(item.getQuantity().stripTrailingZeros().toPlainString());
+            }
+            if (item.getPrice() != null) {
+                entry.append(' ').append(symbol).append(item.getPrice().stripTrailingZeros().toPlainString());
+            }
+            String separator = i == 0 ? "" : ", ";
+            if (text.length() + separator.length() + entry.length() > MAX_NOTE - 2) {
+                text.append(", …");
+                break;
+            }
+            text.append(separator).append(entry);
+        }
+        return text.toString();
+    }
+
     private static String amountKey(BigDecimal amount) {
         return amount == null ? "" : amount.stripTrailingZeros().toPlainString();
     }
@@ -247,10 +277,11 @@ public class ReceiptScanService {
         form.setMerchant(data.merchant() == null ? "" : data.merchant().trim());
         form.setAmount(data.total());
         form.setExpenseDate(parseDate(data.date(), today));
+        String note = null;
         if (upi && data.transactionId() != null && !data.transactionId().isBlank()) {
-            form.setNote("UPI ref " + data.transactionId().trim());
+            note = "UPI ref " + data.transactionId().trim();
         } else if (data.tax() != null && data.tax().signum() > 0) {
-            form.setNote("Includes tax of " + data.tax().toPlainString());
+            note = "Includes tax of " + data.tax().toPlainString();
         }
         List<ExpenseForm.ItemForm> items = new ArrayList<>();
         if (data.items() != null) {
@@ -261,6 +292,7 @@ public class ReceiptScanService {
                     .forEach(i -> items.add(new ExpenseForm.ItemForm(i.name().trim(), i.quantity(), i.price())));
         }
         form.setItems(items);
+        form.setNote(withItems(note, items, Money.symbol(user.currency())));
 
         // Prefer what this user did before; fall back to the model's guess.
         var learned = categorySuggester.fromHistory(user.id(), form.getMerchant(),

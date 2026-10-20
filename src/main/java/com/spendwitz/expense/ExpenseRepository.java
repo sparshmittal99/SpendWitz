@@ -33,6 +33,15 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long>, JpaSpec
 
     long countByUserId(Long userId);
 
+    /** Item lines whose name contains the pattern (lower case, with % wildcards), newest first. */
+    @Query("""
+            select new com.spendwitz.expense.ItemLine(e.expenseDate, e.merchant, i.name, i.quantity, i.price)
+            from ExpenseItem i join i.expense e
+            where e.user.id = :userId and e.expenseDate between :from and :to and lower(i.name) like :pattern
+            order by e.expenseDate desc, e.id desc""")
+    List<ItemLine> findItemLines(@Param("userId") Long userId, @Param("pattern") String pattern,
+            @Param("from") LocalDate from, @Param("to") LocalDate to);
+
     /** A saved bill with the same number and total: the same bill uploaded again. */
     Optional<Expense> findFirstByUserIdAndReferenceAndAmount(Long userId, String reference, BigDecimal amount);
 

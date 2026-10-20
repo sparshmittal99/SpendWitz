@@ -104,6 +104,46 @@ class ReceiptBatchTest extends IntegrationTest {
     }
 
     @Test
+    void scannedItemsAreWrittenIntoTheNote() {
+        var items = List.of(new ExpenseForm.ItemForm("Veg Momos", new BigDecimal("2"), new BigDecimal("180.00")),
+                new ExpenseForm.ItemForm("Coke", BigDecimal.ONE, new BigDecimal("40")),
+                new ExpenseForm.ItemForm("Napkins", null, null));
+
+        assertThat(ReceiptScanService.withItems(null, items, "₹"))
+                .isEqualTo("Items: Veg Momos ×2 ₹180, Coke ₹40, Napkins");
+        assertThat(ReceiptScanService.withItems("Includes tax of 28.50", items, "₹"))
+                .isEqualTo("Includes tax of 28.50 · Items: Veg Momos ×2 ₹180, Coke ₹40, Napkins");
+        assertThat(ReceiptScanService.withItems("UPI ref 629914573108", List.of(), "₹")).isEqualTo("UPI ref 629914573108");
+
+        var many = java.util.stream.IntStream.range(0, 50)
+                .mapToObj(i -> new ExpenseForm.ItemForm("Item number " + i, BigDecimal.ONE, new BigDecimal("10")))
+                .toList();
+        String note = ReceiptScanService.withItems(null, many, "₹");
+        assertThat(note).hasSizeLessThanOrEqualTo(500).startsWith("Items: Item number 0 ₹10").endsWith(", …");
+    }
+
+    @Test
+    void billsSavedTogetherKeepTheirItems() throws Exception {
+        var user = newUser();
+        String date = LocalDate.now(clock).toString();
+        mvc.perform(post("/quick-add/save").with(user(user)).with(csrf())
+                        .param("rows[0].include", "true").param("rows[0].merchant", "Swiggy")
+                        .param("rows[0].amount", "600").param("rows[0].category", "FOOD_DINING")
+                        .param("rows[0].expenseDate", date).param("rows[0].paymentMethod", "UPI")
+                        .param("rows[0].source", "RECEIPT")
+                        .param("rows[0].items[0].name", "Veg Momos").param("rows[0].items[0].quantity", "2")
+                        .param("rows[0].items[0].price", "180")
+                        .param("rows[0].items[1].name", "Coke").param("rows[0].items[1].quantity", "1")
+                        .param("rows[0].items[1].price", "40"))
+                .andExpect(redirectedUrl("/expenses"));
+
+        var saved = expenses.findByUserIdOrderByExpenseDateDescIdDesc(user.id(), Pageable.unpaged()).getFirst();
+        var lines = expenses.findItemLines(user.id(), "%momo%", LocalDate.now(clock), LocalDate.now(clock));
+        assertThat(saved.getMerchant()).isEqualTo("Swiggy");
+        assertThat(lines).singleElement().satisfies(l -> assertThat(l.price()).isEqualByComparingTo("180"));
+    }
+
+    @Test
     void tooManyBillsAtOnceAreRefused() throws Exception {
         var user = newUser();
         var request = multipart("/receipts/scan").with(user(user)).with(csrf());

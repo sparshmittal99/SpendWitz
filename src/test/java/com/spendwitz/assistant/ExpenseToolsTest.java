@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import com.spendwitz.IntegrationTest;
 import com.spendwitz.ai.ExpenseIndexer;
 import com.spendwitz.budget.BudgetService;
 import com.spendwitz.common.Category;
+import com.spendwitz.expense.Expense;
+import com.spendwitz.expense.ExpenseItem;
 import com.spendwitz.expense.ExpenseStats;
 import com.spendwitz.user.AuthUser;
 
@@ -46,6 +49,55 @@ class ExpenseToolsTest extends IntegrationTest {
 
     ExpenseTools toolsFor(AuthUser user) {
         return new ExpenseTools(user.id(), expenses, stats, budgets, indexer, clock);
+    }
+
+    @Test
+    void itemSpendingAddsUpOnlyThatItemAcrossShops() {
+        withItems(addExpense(alice, "Swiggy", "600.00", Category.FOOD_DINING, today.minusDays(3)),
+                new ExpenseItem("Veg Momos", new BigDecimal("2"), new BigDecimal("180.00")),
+                new ExpenseItem("Coke", BigDecimal.ONE, new BigDecimal("40.00")));
+        withItems(addExpense(alice, "Haldiram's", "300.00", Category.FOOD_DINING, today.minusDays(1)),
+                new ExpenseItem("Chicken Momo", BigDecimal.ONE, new BigDecimal("150.00")),
+                new ExpenseItem("Lassi", BigDecimal.ONE, null));
+        withItems(addExpense(alice, "Old bill", "90.00", Category.FOOD_DINING, today.minusDays(60)),
+                new ExpenseItem("Momos", BigDecimal.ONE, new BigDecimal("90.00")));
+        withItems(addExpense(bob, "Swiggy", "500.00", Category.FOOD_DINING, today),
+                new ExpenseItem("Momos", BigDecimal.ONE, new BigDecimal("500.00")));
+
+        var momos = toolsFor(alice).getItemSpending("momos", today.minusDays(30).toString(), today.toString());
+
+        assertThat(momos.total()).isEqualByComparingTo("330.00");       // 180 + 150, not the ₹900 of whole bills
+        assertThat(momos.lineCount()).isEqualTo(2);
+        assertThat(momos.lines()).extracting(ExpenseTools.ItemRow::merchant).containsExactly("Haldiram's", "Swiggy");
+
+        var lassi = toolsFor(alice).getItemSpending("Lassi", today.minusDays(30).toString(), today.toString());
+        assertThat(lassi.total()).isEqualByComparingTo("0");
+        assertThat(lassi.linesWithoutPrice()).isEqualTo(1);
+    }
+
+    @Test
+    void searchingTextAlsoFindsBillsByTheirItems() {
+        withItems(addExpense(alice, "Swiggy", "600.00", Category.FOOD_DINING, today),
+                new ExpenseItem("Veg Momos", BigDecimal.ONE, new BigDecimal("180.00")));
+        addExpense(alice, "Zomato", "250.00", Category.FOOD_DINING, today);
+
+        var found = toolsFor(alice).findExpenses(today.toString(), today.toString(), null, "momos", null);
+
+        assertThat(found.expenses()).extracting(ExpenseTools.ExpenseRow::merchant).containsExactly("Swiggy");
+    }
+
+    @Test
+    void itemNamesMatchSingularAndPlural() {
+        assertThat(ExpenseTools.itemPattern(" Momos ")).isEqualTo("%momo%");
+        assertThat(ExpenseTools.itemPattern("chips")).isEqualTo("%chip%");
+        assertThat(ExpenseTools.itemPattern("glass")).isEqualTo("%glass%");
+        assertThat(ExpenseTools.itemPattern("tea")).isEqualTo("%tea%");
+        assertThat(ExpenseTools.itemPattern("50%_off")).isEqualTo("%50off%");
+    }
+
+    private void withItems(Expense expense, ExpenseItem... items) {
+        expense.replaceItems(List.of(items));
+        expenses.save(expense);
     }
 
     @Test

@@ -55,6 +55,11 @@
                         <input type="hidden" th:field="*{rows[__${st.index}__].source}">
                         <input type="hidden" th:field="*{rows[__${st.index}__].reference}">
                         <input type="hidden" th:field="*{rows[__${st.index}__].duplicateOf}">
+                        <th:block th:each="item, it : ${row.items}">
+                            <input type="hidden" th:field="*{rows[__${st.index}__].items[__${it.index}__].name}">
+                            <input type="hidden" th:field="*{rows[__${st.index}__].items[__${it.index}__].quantity}">
+                            <input type="hidden" th:field="*{rows[__${st.index}__].items[__${it.index}__].price}">
+                        </th:block>
                     </td>
                     <td>
                         <input type="text" class="form-control form-control-sm" th:field="*{rows[__${st.index}__].merchant}" maxlength="150" required>

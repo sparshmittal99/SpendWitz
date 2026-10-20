@@ -34,6 +34,10 @@ public class AssistantService {
               getTotalSpending for one total, getSpendingByCategory / getTopMerchants / getSpendingByPaymentMethod for
               breakdowns (they all take filters, e.g. paymentMethod CASH). findExpenses is only for listing examples.
               You may only do simple maths on tool results (differences, percentages, averages).
+            - For something bought rather than a shop ("momos", "milk", "coke"), use getItemSpending: it adds up only
+              those items from bills, across all shops. getTotalSpending with text adds up whole bills, so a ₹600
+              Swiggy order with ₹180 of momos would count as ₹600. If getItemSpending finds nothing, say no bill lists
+              that item, then try getTotalSpending with the text in case it's in a merchant name or note.
             - Turn relative dates ("last month", "this week", "since Diwali") into exact yyyy-MM-dd ranges before calling tools.
               Weeks start on Monday. "This month" means from the 1st of the current month to today.
             - Category codes: {categories}.

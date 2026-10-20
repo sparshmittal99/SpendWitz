@@ -29,9 +29,15 @@ public final class ExpenseSpecs {
             }
             if (query != null && !query.isBlank()) {
                 String like = "%" + query.trim().toLowerCase() + "%";
+                // Also an item on the bill, e.g. "momos" finds the Swiggy order that had momos in it
+                var items = cq.subquery(Long.class);
+                var item = items.from(ExpenseItem.class);
+                items.select(item.get("id")).where(cb.equal(item.get("expense"), root),
+                        cb.like(cb.lower(item.get("name")), like));
                 predicate = cb.and(predicate, cb.or(
                         cb.like(cb.lower(root.get("merchant")), like),
-                        cb.like(cb.lower(root.get("note")), like)));
+                        cb.like(cb.lower(root.get("note")), like),
+                        cb.exists(items)));
             }
             if (from != null) {
                 predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("expenseDate"), from));

@@ -5,6 +5,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -115,6 +116,9 @@ public class QuickAddController {
             boolean scanned = row.getSource() == ExpenseSource.RECEIPT || row.getSource() == ExpenseSource.UPI_SCREENSHOT;
             expense.setSource(scanned ? row.getSource() : form.isVoice() ? ExpenseSource.VOICE : ExpenseSource.QUICK_ADD);
             expense.setReference(scanned ? row.getReference() : null);
+            if (scanned && row.getItems() != null) {
+                expense.setItems(row.getItems().stream().filter(Objects::nonNull).limit(50).toList());
+            }
             toSave.add(expense);
         }
         if (toSave.isEmpty() && errors.isEmpty()) {

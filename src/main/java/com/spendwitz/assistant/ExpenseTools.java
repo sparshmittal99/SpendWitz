@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -26,6 +28,7 @@ import com.spendwitz.expense.Expense;
 import com.spendwitz.expense.ExpenseRepository;
 import com.spendwitz.expense.ExpenseSpecs;
 import com.spendwitz.expense.ExpenseStats;
+import com.spendwitz.expense.ItemLine;
 import com.spendwitz.expense.MonthTotal;
 
 /**
@@ -84,6 +87,14 @@ public class ExpenseTools {
     }
 
     public record BudgetRow(String category, BigDecimal limit, BigDecimal spent, BigDecimal remaining, int percentUsed) {
+    }
+
+    /** price is the line price as printed on the bill (already multiplied by quantity). */
+    public record ItemRow(String date, String merchant, String item, BigDecimal quantity, BigDecimal price) {
+    }
+
+    public record ItemResult(String item, String from, String to, BigDecimal total, long lineCount,
+            long linesWithoutPrice, boolean truncated, List<ItemRow> lines) {
     }
 
     @Tool(description = "Exact total amount and number of expenses between two dates (both inclusive). "
@@ -185,6 +196,39 @@ public class ExpenseTools {
         var aggregate = stats.aggregate(spec);
         List<ExpenseRow> rows = expenses.findAll(spec, page).map(ExpenseRow::of).getContent();
         return new FindResult(aggregate.count(), aggregate.total(), aggregate.count() > rows.size(), rows);
+    }
+
+    @Tool(description = "Exact spending on a product or item (e.g. momos, milk, coke, paneer) between two dates "
+            + "(both inclusive), from the items on scanned bills. Sums only the matching item lines, not the whole bills "
+            + "they were on, across every shop. Use this whenever the question is about something bought rather than "
+            + "a shop. Lists at most 25 lines, newest first; total and counts cover all of them.")
+    public ItemResult getItemSpending(
+            @ToolParam(description = "Item name or part of it, e.g. momos") String item,
+            @ToolParam(description = "Start date, yyyy-MM-dd") String from,
+            @ToolParam(description = "End date (inclusive), yyyy-MM-dd") String to) {
+        if (item == null || item.isBlank()) {
+            throw new IllegalArgumentException("item must name what was bought, e.g. momos");
+        }
+        LocalDate start = date(from);
+        LocalDate end = endDate(start, to);
+        List<ItemLine> lines = expenses.findItemLines(userId, itemPattern(item), start, end);
+        BigDecimal total = lines.stream().map(ItemLine::price).filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        long withoutPrice = lines.stream().filter(l -> l.price() == null).count();
+        List<ItemRow> rows = lines.stream().limit(MAX_ROWS)
+                .map(l -> new ItemRow(l.date().toString(), l.merchant(), l.item(), l.quantity(), l.price()))
+                .toList();
+        return new ItemResult(item.trim(), start.toString(), end.toString(), total, lines.size(), withoutPrice,
+                lines.size() > rows.size(), rows);
+    }
+
+    /** "momos" also finds "Veg Momo" and "Momos": a trailing plural s is dropped before matching. */
+    static String itemPattern(String item) {
+        String term = item.trim().toLowerCase(Locale.ROOT).replace("%", "").replace("_", "");
+        if (term.length() > 3 && term.endsWith("s") && !term.endsWith("ss")) {
+            term = term.substring(0, term.length() - 1);
+        }
+        return "%" + term + "%";
     }
 
     @Tool(description = "Budget status for one month: limit, amount spent, remaining and percent used per category "

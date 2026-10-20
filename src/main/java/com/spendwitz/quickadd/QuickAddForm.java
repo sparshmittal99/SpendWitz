@@ -37,6 +37,8 @@ public class QuickAddForm {
         private String reference;
         /** Set when this bill was already saved or is in the upload twice; the row then starts unticked. */
         private String duplicateOf;
+        /** A scanned bill's line items, carried in hidden fields so they're saved like a single scanned bill's. */
+        private List<ExpenseForm.ItemForm> items = new ArrayList<>();
 
         public Row() {
         }
@@ -46,6 +48,7 @@ public class QuickAddForm {
             Row row = new Row();
             row.reference = scanned.getReference();
             row.duplicateOf = duplicateOf;
+            row.items = new ArrayList<>(scanned.getItems());
             row.include = duplicateOf == null;
             row.merchant = scanned.getMerchant();
             row.amount = scanned.getAmount();
@@ -88,6 +91,8 @@ public class QuickAddForm {
         public void setReference(String reference) { this.reference = reference; }
         public String getDuplicateOf() { return duplicateOf; }
         public void setDuplicateOf(String duplicateOf) { this.duplicateOf = duplicateOf; }
+        public List<ExpenseForm.ItemForm> getItems() { return items; }
+        public void setItems(List<ExpenseForm.ItemForm> items) { this.items = items; }
     }
 
     public boolean isVoice() { return voice; }

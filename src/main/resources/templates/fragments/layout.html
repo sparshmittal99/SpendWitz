@@ -16,18 +16,21 @@
 </head>
 <body>
 
-<nav th:fragment="navbar(active)" class="navbar navbar-expand-xl app-navbar sticky-top">
-    <div class="container">
-        <a class="navbar-brand brand" th:href="${currentUser != null} ? '/dashboard' : '/'">
+<th:block th:fragment="navbar(active)">
+<nav class="navbar navbar-expand-xl app-navbar sticky-top">
+    <div class="container flex-nowrap gap-2">
+        <!-- Phones and tablets: the menu slides in from the left -->
+        <button th:if="${currentUser != null}" class="btn nav-menu-btn d-xl-none" type="button"
+                data-bs-toggle="offcanvas" data-bs-target="#appMenu" aria-controls="appMenu" aria-label="Open menu">
+            <i class="bi bi-list"></i>
+        </button>
+        <a class="navbar-brand brand me-auto me-xl-3" th:href="${currentUser != null} ? '/dashboard' : '/'">
             <img src="/img/logo.svg" class="brand-mark" width="34" height="34" alt=""> SpendWitz
         </a>
         <th:block th:if="${currentUser != null}">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
-                    aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="mainNav">
-                <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+            <!-- Laptops and wider: links across the top -->
+            <div class="d-none d-xl-flex flex-grow-1">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link" th:classappend="${active == 'dashboard'} ? 'active'" href="/dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" th:classappend="${active == 'expenses'} ? 'active'" href="/expenses"><i class="bi bi-list-ul"></i> Expenses</a></li>
                     <li class="nav-item dropdown">
@@ -47,28 +50,33 @@
                     <li class="nav-item"><a class="nav-link" th:classappend="${active == 'search'} ? 'active'" href="/search"><i class="bi bi-search"></i> Search</a></li>
                     <li class="nav-item"><a class="nav-link" th:classappend="${active == 'budgets'} ? 'active'" href="/budgets"><i class="bi bi-piggy-bank"></i> Budgets</a></li>
                 </ul>
-                <div class="d-flex align-items-center gap-2">
-                    <span th:if="${currentUser.demo()}" class="badge text-bg-warning">Demo account</span>
-                    <div class="dropdown">
-                        <button class="btn p-0 border-0 avatar-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                                aria-label="Account menu" title="Account">
-                            <span class="avatar avatar-sm" th:classappend="${active == 'account'} ? 'avatar-active'"
-                                  th:text="${#strings.toUpperCase(#strings.substring(currentUser.displayName(), 0, 1))}">D</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                            <li class="px-3 py-2">
-                                <div class="fw-semibold" th:text="${currentUser.displayName()}">Demo User</div>
-                                <div class="small text-secondary" th:text="${currentUser.email()}">demo@spendwitz.app</div>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/account"><i class="bi bi-person-gear"></i> Account</a></li>
-                            <li>
-                                <form th:action="@{/logout}" method="post" class="m-0">
-                                    <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> Log out</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
+            </div>
+            <!-- Always top right: the account menu, opening leftwards so it stays on screen -->
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <span th:if="${currentUser.demo()}" class="badge text-bg-warning d-none d-sm-inline-block">Demo account</span>
+                <div class="dropdown">
+                    <button class="btn p-0 border-0 avatar-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                            data-bs-offset="0,10" aria-label="Account menu" title="Account">
+                        <span class="avatar avatar-sm" th:classappend="${active == 'account'} ? 'avatar-active'"
+                              th:text="${#strings.toUpperCase(#strings.substring(currentUser.displayName(), 0, 1))}">D</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow account-menu">
+                        <li class="account-menu-head">
+                            <span class="avatar" th:text="${#strings.toUpperCase(#strings.substring(currentUser.displayName(), 0, 1))}">D</span>
+                            <div class="min-w-0">
+                                <div class="fw-semibold text-truncate" th:text="${currentUser.displayName()}">Demo User</div>
+                                <div class="small text-secondary text-truncate" th:text="${currentUser.email()}">demo@spendwitz.app</div>
+                                <span th:if="${currentUser.demo()}" class="badge text-bg-warning mt-1">Demo account</span>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:classappend="${active == 'account'} ? 'active'" href="/account"><i class="bi bi-person-gear"></i> Account</a></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="m-0">
+                                <button class="dropdown-item text-danger" type="submit"><i class="bi bi-box-arrow-right"></i> Sign out</button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </th:block>
@@ -78,6 +86,34 @@
         </div>
     </div>
 </nav>
+
+<!-- Phones and tablets: slide-in menu. Outside the sticky navbar so its backdrop layers correctly. -->
+<div th:if="${currentUser != null}" class="offcanvas offcanvas-start app-drawer d-xl-none" tabindex="-1" id="appMenu"
+     aria-labelledby="appMenuTitle">
+    <div class="offcanvas-header">
+        <a class="brand d-flex align-items-center gap-2 text-decoration-none" id="appMenuTitle" href="/dashboard">
+            <img src="/img/logo.svg" class="brand-mark" width="32" height="32" alt=""> SpendWitz
+        </a>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close menu"></button>
+    </div>
+    <div class="offcanvas-body">
+        <nav class="drawer-nav" aria-label="Main">
+            <a th:classappend="${active == 'dashboard'} ? 'active'" href="/dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+            <a th:classappend="${active == 'expenses'} ? 'active'" href="/expenses"><i class="bi bi-list-ul"></i> Expenses</a>
+            <a th:classappend="${active == 'cash'} ? 'active'" href="/cash"><i class="bi bi-cash-coin"></i> Cash</a>
+            <a th:classappend="${active == 'assistant'} ? 'active'" href="/assistant"><i class="bi bi-chat-dots"></i> Ask AI</a>
+            <a th:classappend="${active == 'search'} ? 'active'" href="/search"><i class="bi bi-search"></i> Search</a>
+            <a th:classappend="${active == 'budgets'} ? 'active'" href="/budgets"><i class="bi bi-piggy-bank"></i> Budgets</a>
+
+            <div class="drawer-heading">Add expense</div>
+            <a href="/quick-add"><i class="bi bi-mic"></i> Type or speak it <span class="ai-chip ms-auto">AI</span></a>
+            <a th:classappend="${active == 'scan'} ? 'active'" href="/receipts/scan"><i class="bi bi-camera"></i> Scan bill or UPI <span class="ai-chip ms-auto">AI</span></a>
+            <a href="/import"><i class="bi bi-bank"></i> Import bank statement <span class="ai-chip ms-auto">AI</span></a>
+            <a href="/expenses/new"><i class="bi bi-pencil-square"></i> Manual entry</a>
+        </nav>
+    </div>
+</div>
+</th:block>
 
 <div th:fragment="flash" class="flash-area">
     <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">

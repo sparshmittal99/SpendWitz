@@ -63,6 +63,121 @@ main { flex: 1; }
     background: #eef0ff;
 }
 
+/* Hamburger that opens the slide-in menu on phones and tablets */
+.nav-menu-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-left: -6px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    font-size: 1.6rem;
+    color: var(--ss-text);
+}
+
+.nav-menu-btn:hover,
+.nav-menu-btn:focus-visible {
+    background: #eef0ff;
+    color: var(--ss-primary);
+}
+
+/* Account menu under the avatar, top right */
+.account-menu {
+    width: min(280px, calc(100vw - 24px));
+    padding: 0.4rem;
+    border: 1px solid var(--ss-border);
+    border-radius: 14px;
+}
+
+.account-menu-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.6rem 0.4rem;
+}
+
+.account-menu-head .avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+}
+
+.account-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: 8px;
+}
+
+.account-menu .dropdown-item.active,
+.account-menu .dropdown-item:active {
+    color: var(--ss-primary);
+    background: #eef0ff;
+}
+
+.min-w-0 {
+    min-width: 0;
+}
+
+/* Slide-in menu (phones and tablets) */
+.app-drawer {
+    --bs-offcanvas-width: min(300px, 85vw);
+}
+
+.app-drawer .offcanvas-header {
+    border-bottom: 1px solid var(--ss-border);
+}
+
+.app-drawer .brand-mark {
+    width: 32px;
+    height: 32px;
+}
+
+.drawer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.drawer-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: 10px;
+    color: var(--ss-text);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.drawer-nav a .bi {
+    font-size: 1.15rem;
+    color: var(--ss-muted);
+}
+
+.drawer-nav a:hover,
+.drawer-nav a.active {
+    background: #eef0ff;
+    color: var(--ss-primary);
+}
+
+.drawer-nav a:hover .bi,
+.drawer-nav a.active .bi {
+    color: var(--ss-primary);
+}
+
+.drawer-heading {
+    margin: 1rem 0.8rem 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ss-muted);
+}
+
 .brand {
     display: inline-flex;
     align-items: center;

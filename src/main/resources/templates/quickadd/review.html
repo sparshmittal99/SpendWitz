@@ -11,7 +11,7 @@
     </p>
     <p class="text-secondary" th:if="${scannedBills != null}">
         AI read <strong th:text="${form.rows.size()}">3</strong> of <span th:text="${scannedBills}">4</span> bills.
-        Fix anything that's off and untick anything you don't want.
+        Fix anything that's off and untick anything you don't want. Bills you've already added are unticked.
     </p>
 
     <div th:if="${failures != null and !failures.isEmpty()}" class="alert alert-warning">
@@ -49,12 +49,19 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="row, st : *{rows}">
+                <tr th:each="row, st : *{rows}" th:classappend="${row.duplicateOf != null} ? 'table-warning'">
                     <td>
                         <input type="checkbox" class="form-check-input" th:field="*{rows[__${st.index}__].include}" aria-label="Include this expense">
                         <input type="hidden" th:field="*{rows[__${st.index}__].source}">
+                        <input type="hidden" th:field="*{rows[__${st.index}__].reference}">
+                        <input type="hidden" th:field="*{rows[__${st.index}__].duplicateOf}">
                     </td>
-                    <td><input type="text" class="form-control form-control-sm" th:field="*{rows[__${st.index}__].merchant}" maxlength="150" required></td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm" th:field="*{rows[__${st.index}__].merchant}" maxlength="150" required>
+                        <div th:if="${row.duplicateOf != null}" class="small text-warning-emphasis mt-1">
+                            <i class="bi bi-files"></i> <span th:text="${row.duplicateOf}">Already added</span>. Tick it only if it's a different purchase.
+                        </div>
+                    </td>
                     <td>
                         <div class="input-group input-group-sm">
                             <span class="input-group-text" th:text="${currencySymbol}">₹</span>

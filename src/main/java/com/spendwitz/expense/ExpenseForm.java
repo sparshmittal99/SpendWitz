@@ -41,6 +41,10 @@ public class ExpenseForm {
 
     private ExpenseSource source = ExpenseSource.MANUAL;
 
+    /** Bill number or UPI transaction id read from a scan; carried in a hidden field, never shown. */
+    @Size(max = 100)
+    private String reference;
+
     @NotNull
     private PaymentMethod paymentMethod = PaymentMethod.UPI;
 
@@ -113,6 +117,8 @@ public class ExpenseForm {
     public void setNote(String note) { this.note = note; }
     public ExpenseSource getSource() { return source; }
     public void setSource(ExpenseSource source) { this.source = source; }
+    public String getReference() { return reference; }
+    public void setReference(String reference) { this.reference = reference; }
     public PaymentMethod getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(PaymentMethod paymentMethod) { this.paymentMethod = paymentMethod; }
     public List<ItemForm> getItems() { return items; }

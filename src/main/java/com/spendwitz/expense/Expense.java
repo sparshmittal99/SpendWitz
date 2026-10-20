@@ -52,6 +52,10 @@ public class Expense {
 
     private String note;
 
+    /** Bill number or UPI transaction id from a scan, for spotting duplicates. Set once, never shown. */
+    @Column(updatable = false)
+    private String reference;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ExpenseSource source;
@@ -73,6 +77,11 @@ public class Expense {
     public Expense(AppUser user, ExpenseSource source) {
         this.user = user;
         this.source = source;
+    }
+
+    public Expense(AppUser user, ExpenseSource source, String reference) {
+        this(user, source);
+        this.reference = reference;
     }
 
     public void update(String merchant, BigDecimal amount, Category category, LocalDate expenseDate, String note) {
@@ -103,6 +112,7 @@ public class Expense {
     public Category getCategory() { return category; }
     public LocalDate getExpenseDate() { return expenseDate; }
     public String getNote() { return note; }
+    public String getReference() { return reference; }
     public ExpenseSource getSource() { return source; }
     public PaymentMethod getPaymentMethod() { return paymentMethod; }
     public Instant getCreatedAt() { return createdAt; }

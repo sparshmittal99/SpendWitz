@@ -33,7 +33,8 @@ public class ExpenseService {
 
     @Transactional
     public Expense create(AuthUser user, ExpenseForm form) {
-        Expense expense = new Expense(users.getReferenceById(user.id()), form.getSource());
+        Expense expense = new Expense(users.getReferenceById(user.id()), form.getSource(),
+                BillReference.normalize(form.getReference()));
         apply(expense, form);
         expenses.save(expense);
         events.publishEvent(new ExpenseChangedEvent(ExpenseIndexer.toDocument(expense)));

@@ -71,7 +71,7 @@ public class AssistantService {
     public Flux<String> chat(AuthUser user, String conversationId, String message) {
         quota.consume(user);
         LocalDate today = LocalDate.now(clock);
-        return chat.stream(prompt -> prompt
+        return chat.streamPreferFast(prompt -> prompt
                 .system(s -> s.text(SYSTEM_PROMPT)
                         .param("today", today.toString())
                         .param("weekday", today.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))

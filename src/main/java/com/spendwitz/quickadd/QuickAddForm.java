@@ -33,13 +33,20 @@ public class QuickAddForm {
         private String note;
         /** Set for rows read from a bill or UPI screenshot; otherwise the source comes from {@link #voice}. */
         private ExpenseSource source;
+        /** The bill's number or UPI transaction id, kept hidden for spotting the same bill again. */
+        private String reference;
+        /** Set when this bill was already saved or is in the upload twice; the row then starts unticked. */
+        private String duplicateOf;
 
         public Row() {
         }
 
         /** A row for one scanned bill, so several bills can be reviewed and saved together. */
-        public static Row fromScan(ExpenseForm scanned) {
+        public static Row fromScan(ExpenseForm scanned, String duplicateOf) {
             Row row = new Row();
+            row.reference = scanned.getReference();
+            row.duplicateOf = duplicateOf;
+            row.include = duplicateOf == null;
             row.merchant = scanned.getMerchant();
             row.amount = scanned.getAmount();
             row.category = scanned.getCategory();
@@ -77,6 +84,10 @@ public class QuickAddForm {
         public void setNote(String note) { this.note = note; }
         public ExpenseSource getSource() { return source; }
         public void setSource(ExpenseSource source) { this.source = source; }
+        public String getReference() { return reference; }
+        public void setReference(String reference) { this.reference = reference; }
+        public String getDuplicateOf() { return duplicateOf; }
+        public void setDuplicateOf(String duplicateOf) { this.duplicateOf = duplicateOf; }
     }
 
     public boolean isVoice() { return voice; }

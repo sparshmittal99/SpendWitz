@@ -26,6 +26,13 @@
             <form id="expenseForm" class="card p-4" method="post" novalidate th:object="${form}"
                   th:action="${expenseId != null} ? @{/expenses/{id}(id=${expenseId})} : @{/expenses}">
                 <input type="hidden" th:field="*{source}">
+                <input type="hidden" th:field="*{reference}">
+
+                <div th:if="${duplicateOf != null}" class="alert alert-warning d-flex gap-2 align-items-start">
+                    <i class="bi bi-files"></i>
+                    <div><strong>You may have added this bill before.</strong> <span th:text="${duplicateOf}">Already added: DMart</span>.
+                        Saving will add it again, so only save if it's a different purchase.</div>
+                </div>
 
                 <div th:if="${categoryReason != null}" class="alert ai-card border-0 d-flex gap-2 align-items-start">
                     <i class="bi bi-stars text-primary"></i>

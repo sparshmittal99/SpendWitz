@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.google.genai.GoogleGenAiChatOptions;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -24,11 +26,34 @@ public class ResilientChat {
     private static final Logger log = LoggerFactory.getLogger(ResilientChat.class);
 
     private final ChatClient chatClient;
+    private final ChatClient fastChatClient;
     private final String fallbackModel;
 
-    public ResilientChat(ChatClient chatClient, @Value("${spendwitz.ai.fallback-model:}") String fallbackModel) {
+    public ResilientChat(ChatClient chatClient, @Qualifier("fastChatClient") ObjectProvider<ChatClient> fastChatClient,
+            @Value("${spendwitz.ai.fallback-model:}") String fallbackModel) {
         this.chatClient = chatClient;
+        this.fastChatClient = fastChatClient.getIfAvailable();
         this.fallbackModel = fallbackModel;
+    }
+
+    /**
+     * Streams from the fast chat model (Groq) when one is configured. If it fails before sending any text (rate
+     * limit, outage, a malformed tool call), the same request goes to Gemini, with its own fallback model.
+     */
+    public Flux<String> streamPreferFast(Function<ChatClient.ChatClientRequestSpec, Flux<String>> request) {
+        if (fastChatClient == null) {
+            return stream(request);
+        }
+        AtomicBoolean started = new AtomicBoolean();
+        return Flux.defer(() -> request.apply(fastChatClient.prompt()))
+                .doOnNext(chunk -> started.set(true))
+                .onErrorResume(e -> {
+                    if (started.get()) {
+                        return Flux.error(e);
+                    }
+                    log.info("Fast chat model failed ({}), answering with Gemini", e.toString());
+                    return stream(request);
+                });
     }
 
     public <T> T call(Function<ChatClient.ChatClientRequestSpec, T> request) {

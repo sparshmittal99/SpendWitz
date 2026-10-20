@@ -33,6 +33,12 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long>, JpaSpec
 
     long countByUserId(Long userId);
 
+    /** A saved bill with the same number and total: the same bill uploaded again. */
+    Optional<Expense> findFirstByUserIdAndReferenceAndAmount(Long userId, String reference, BigDecimal amount);
+
+    /** A UPI payment already saved another way, e.g. imported from a bank statement whose narration has the id. */
+    Optional<Expense> findFirstByUserIdAndNoteContaining(Long userId, String text);
+
     @Query("""
             select coalesce(sum(e.amount), 0) from Expense e
             where e.user.id = :userId and e.expenseDate between :from and :to""")

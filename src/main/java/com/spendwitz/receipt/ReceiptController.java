@@ -73,7 +73,8 @@ public class ReceiptController {
             return "redirect:/receipts/scan";
         }
         QuickAddForm form = new QuickAddForm();
-        form.setRows(new ArrayList<>(batch.results().stream().map(r -> QuickAddForm.Row.fromScan(r.form())).toList()));
+        form.setRows(new ArrayList<>(batch.results().stream()
+                .map(r -> QuickAddForm.Row.fromScan(r.form(), r.duplicateOf())).toList()));
         model.addAttribute("form", form);
         model.addAttribute("failures", batch.failures());
         model.addAttribute("scannedBills", uploads.size());
@@ -94,6 +95,7 @@ public class ReceiptController {
             var result = scanner.scan(user, bytes, contentType);
             model.addAttribute("form", result.form());
             model.addAttribute("categoryReason", result.categoryReason());
+            model.addAttribute("duplicateOf", result.duplicateOf());
             if (contentType.startsWith("image/") && !contentType.contains("hei")) {
                 model.addAttribute("receiptPreview",
                         "data:" + contentType + ";base64," + Base64.getEncoder().encodeToString(bytes));

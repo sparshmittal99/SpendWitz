@@ -19,6 +19,7 @@ public record ReceiptData(
         String paymentStatus,
         String direction,
         String transactionId,
+        String billNumber,
         List<Item> items) {
 
     public record Item(String name, BigDecimal quantity, BigDecimal price) {

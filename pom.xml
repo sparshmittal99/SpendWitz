@@ -75,6 +75,11 @@
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
 		</dependency>
+		<!-- Optional fast chat for the assistant via Groq's OpenAI-compatible API (no starter: built by hand in AiConfig) -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-openai</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-vector-store-advisor</artifactId>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('AI expense tracker')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('home')}"></nav>
+
+<main>
+    <section class="hero">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <span class="ai-chip mb-3"><i class="bi bi-stars"></i> Powered by Gemini + Spring AI</span>
+                    <h1 class="mt-3">Your expenses, <span class="gradient-text">understood.</span></h1>
+                    <p class="lead text-secondary mt-3">
+                        Snap a receipt and SpendSense fills in the details. Ask
+                        <em>"How much did I spend on food delivery last month?"</em> and get a real answer
+                        computed from your own data.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <a href="/login#demo" class="btn btn-primary btn-lg"><i class="bi bi-play-circle"></i> Try the live demo</a>
+                        <a href="/register" class="btn btn-outline-primary btn-lg">Create an account</a>
+                    </div>
+                    <p class="small text-secondary mt-3">No sign-up needed for the demo. It has 6 months of sample data.</p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card p-3 shadow-sm">
+                        <div class="small text-secondary px-2">Example conversation</div>
+                        <div class="d-flex flex-column gap-3 p-2">
+                            <div class="msg msg-user">How much did I spend on Swiggy and Zomato this month vs last month?</div>
+                            <div class="msg msg-ai">
+                                <span class="ai-chip mb-2"><i class="bi bi-tools"></i> called getTotalSpending · findExpenses</span>
+                                <p class="mt-2 mb-1">You've spent <strong>₹4,870</strong> on food delivery this month, up <strong>38%</strong> from ₹3,530 in the same period last month.</p>
+                                <ul class="mb-0">
+                                    <li>Swiggy: ₹2,910 (7 orders)</li>
+                                    <li>Zomato: ₹1,960 (5 orders)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 p-4">
+                    <div class="feature-icon mb-3"><i class="bi bi-receipt"></i></div>
+                    <h5 class="fw-bold">Scan receipts</h5>
+                    <p class="text-secondary mb-0">Upload a photo or PDF. A vision model extracts the merchant, date, line items and total as structured JSON.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 p-4">
+                    <div class="feature-icon mb-3"><i class="bi bi-chat-dots"></i></div>
+                    <h5 class="fw-bold">Ask in plain English</h5>
+                    <p class="text-secondary mb-0">An AI agent calls safe, read-only backend tools to answer questions with real numbers, streamed live.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 p-4">
+                    <div class="feature-icon mb-3"><i class="bi bi-magic"></i></div>
+                    <h5 class="fw-bold">Learns your categories</h5>
+                    <p class="text-secondary mb-0">Correct a category once and similar expenses follow, using vector similarity over your history (pgvector).</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 p-4">
+                    <div class="feature-icon mb-3"><i class="bi bi-lightbulb"></i></div>
+                    <h5 class="fw-bold">Insights &amp; budgets</h5>
+                    <p class="text-secondary mb-0">Charts, budget alerts and AI-written monthly insights based on numbers computed in SQL.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <h6 class="text-secondary text-uppercase small fw-semibold mb-3">Built with</h6>
+            <span class="tech-pill">Java 21</span>
+            <span class="tech-pill">Spring Boot 4</span>
+            <span class="tech-pill">Spring AI 2</span>
+            <span class="tech-pill">Google Gemini</span>
+            <span class="tech-pill">PostgreSQL + pgvector</span>
+            <span class="tech-pill">Spring Security</span>
+            <span class="tech-pill">Flyway</span>
+            <span class="tech-pill">Thymeleaf + Bootstrap</span>
+            <span class="tech-pill">Docker</span>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

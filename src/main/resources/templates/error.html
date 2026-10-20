@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Error')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('error')}"></nav>
+
+<main class="container py-5 text-center">
+    <div class="display-4 fw-bold text-primary" th:text="${status}">404</div>
+    <h3 class="fw-bold mt-2" th:text="${status == 404} ? 'Page not found' : 'Something went wrong'">Page not found</h3>
+    <p class="text-secondary">The page doesn't exist or you don't have access to it.</p>
+    <a href="/" class="btn btn-primary">Back to SpendSense</a>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

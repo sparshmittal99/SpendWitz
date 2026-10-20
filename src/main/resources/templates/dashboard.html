@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('dashboard')}"></nav>
+
+<main class="container py-4" th:with="s=${currencySymbol}">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h2 class="page-title mb-0">Hi, <span th:text="${currentUser.displayName()}">there</span> 👋</h2>
+            <span class="text-secondary" th:text="${#temporals.format(view.month().atDay(1), 'MMMM yyyy')}">October 2026</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/quick-add" class="btn btn-primary"><i class="bi bi-mic"></i> Type or speak</a>
+            <a href="/receipts/scan" class="btn btn-outline-primary"><i class="bi bi-camera"></i> Scan bill / UPI</a>
+            <a href="/cash" class="btn btn-outline-success"><i class="bi bi-cash-coin"></i> Cash</a>
+        </div>
+    </div>
+
+    <!-- Empty state for brand-new users -->
+    <div th:if="${view.expenseCount() == 0}" class="card p-5 text-center mb-4">
+        <div class="feature-icon mx-auto mb-3"><i class="bi bi-receipt"></i></div>
+        <h4 class="fw-bold">Add your first expense</h4>
+        <p class="text-secondary">Type or say what you spent ("sabzi 150, chai 20"), scan a bill or UPI screenshot, or log cash.</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+            <a href="/quick-add" class="btn btn-primary"><i class="bi bi-mic"></i> Type or speak</a>
+            <a href="/receipts/scan" class="btn btn-outline-primary">Scan bill / UPI</a>
+            <a href="/cash" class="btn btn-outline-success">Add cash</a>
+        </div>
+    </div>
+
+    <th:block th:if="${view.expenseCount() > 0}">
+    <!-- KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 h-100">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="kpi-label">Spent this month</div>
+                        <div class="kpi-value amount" th:text="${s + #numbers.formatDecimal(view.monthToDate(), 1, 'COMMA', 0, 'POINT')}">₹0</div>
+                    </div>
+                    <div class="kpi-icon d-none d-sm-grid" style="background:#eef0ff;color:#4f46e5"><i class="bi bi-wallet2"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 h-100">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="kpi-label">vs same days last month</div>
+                        <div class="kpi-value" th:if="${view.changePercent() == null}">n/a</div>
+                        <div class="kpi-value" th:if="${view.changePercent() != null}"
+                             th:classappend="${view.changePercent() > 0} ? 'text-danger' : 'text-success'"
+                             th:text="${(view.changePercent() > 0 ? '+' : '') + view.changePercent() + '%'}">+0%</div>
+                        <div class="small text-secondary" th:text="${'was ' + s + #numbers.formatDecimal(view.lastMonthSamePeriod(), 1, 'COMMA', 0, 'POINT')}">was ₹0</div>
+                    </div>
+                    <div class="kpi-icon d-none d-sm-grid" style="background:#fef3c7;color:#d97706"><i class="bi bi-graph-up-arrow"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 h-100">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="kpi-label">Daily average</div>
+                        <div class="kpi-value amount" th:text="${s + #numbers.formatDecimal(view.dailyAverage(), 1, 'COMMA', 0, 'POINT')}">₹0</div>
+                    </div>
+                    <div class="kpi-icon d-none d-sm-grid" style="background:#dcfce7;color:#16a34a"><i class="bi bi-calendar-day"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 h-100">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="kpi-label">Spent today</div>
+                        <div class="kpi-value amount" th:text="${s + #numbers.formatDecimal(view.todayTotal(), 1, 'COMMA', 0, 'POINT')}">₹0</div>
+                    </div>
+                    <div class="kpi-icon d-none d-sm-grid" style="background:#fce7f3;color:#db2777"><i class="bi bi-clock"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI insights -->
+    <div class="card ai-card mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <div>
+                    <span class="ai-chip"><i class="bi bi-stars"></i> AI insights</span>
+                    <h5 class="fw-bold mt-2 mb-0">What stands out this month</h5>
+                </div>
+                <form th:action="@{/dashboard/insights}" method="post" class="ai-form">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <span class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span>
+                        <i class="bi bi-arrow-repeat"></i>
+                        <span th:text="${view.insight() == null} ? 'Generate insights' : 'Refresh'">Generate insights</span>
+                    </button>
+                </form>
+            </div>
+            <ul th:if="${view.insight() != null}" class="insight-list list-unstyled mt-3 mb-1">
+                <li th:each="line : ${view.insight().insights}" th:text="${line}">Insight</li>
+            </ul>
+            <p th:if="${view.insight() == null}" class="text-secondary mt-3 mb-0">
+                Get a short AI summary of your spending: what changed, what's over budget, and one thing to try.
+            </p>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header">Where it went this month</div>
+                <div class="card-body">
+                    <div th:if="${view.categories().isEmpty()}" class="text-secondary">No expenses yet this month.</div>
+                    <div th:unless="${view.categories().isEmpty()}">
+                        <div style="height:220px"><canvas id="categoryChart" aria-label="Spending by category"></canvas></div>
+                        <ul class="list-unstyled mt-3 mb-0">
+                            <li th:each="c : ${view.categories()}" class="d-flex justify-content-between py-1">
+                                <span><span class="cat-dot" th:style="'background:' + ${c.category().color}"></span><span th:text="${c.category().label}">Food</span></span>
+                                <span class="amount" th:text="${s + #numbers.formatDecimal(c.total(), 1, 'COMMA', 0, 'POINT')}">₹0</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header">Last 6 months</div>
+                <div class="card-body"><div style="height:320px"><canvas id="trendChart" aria-label="Monthly spending"></canvas></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Payment methods and budgets -->
+        <div class="col-lg-5 d-flex flex-column gap-4">
+            <div class="card" th:unless="${view.paymentMethods().isEmpty()}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    How you paid this month <a href="/cash" class="small fw-normal">Cash wallet</a>
+                </div>
+                <div class="card-body">
+                    <div th:each="p : ${view.paymentMethods()}" class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="fw-semibold"><i th:class="'bi ' + ${p.paymentMethod().icon}"></i> <span th:text="${p.paymentMethod().label}">UPI</span>
+                                <span class="text-secondary fw-normal" th:text="'· ' + ${p.count()} + (${p.count() == 1} ? ' payment' : ' payments')">· 12 payments</span></span>
+                            <span class="amount" th:text="${s + #numbers.formatDecimal(p.total(), 1, 'COMMA', 0, 'POINT')}">₹0</span>
+                        </div>
+                        <div class="progress" style="height:6px" role="progressbar" th:attr="aria-valuenow=${view.paymentShare(p)},aria-label=${p.paymentMethod().label + ' share'}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" th:classappend="${p.paymentMethod().name() == 'CASH'} ? 'bg-success'" th:style="'width:' + ${view.paymentShare(p)} + '%'"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card flex-fill">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    Budgets <a href="/budgets" class="small fw-normal">Manage</a>
+                </div>
+                <div class="card-body">
+                    <p th:if="${view.budgets().isEmpty()}" class="text-secondary mb-0">
+                        No budgets yet. <a href="/budgets">Set monthly limits</a> to get alerts.
+                    </p>
+                    <div th:each="b : ${view.budgets()}" class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="fw-semibold" th:text="${b.category().label}">Food</span>
+                            <span>
+                                <span class="amount" th:text="${s + #numbers.formatDecimal(b.spent(), 1, 'COMMA', 0, 'POINT')}">₹0</span>
+                                <span class="text-secondary" th:text="${' / ' + s + #numbers.formatDecimal(b.limit(), 1, 'COMMA', 0, 'POINT')}">/ ₹0</span>
+                            </span>
+                        </div>
+                        <div class="progress" role="progressbar" style="height:8px"
+                             th:attr="aria-valuenow=${b.percentUsed()},aria-label=${b.category().label + ' budget'}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" th:classappend="'bg-' + ${b.level()}"
+                                 th:style="'width:' + ${b.percentUsed() > 100 ? 100 : b.percentUsed()} + '%'"></div>
+                        </div>
+                        <div th:if="${b.overBudget()}" class="small text-danger mt-1">
+                            <i class="bi bi-exclamation-circle"></i>
+                            Over by <span th:text="${s + #numbers.formatDecimal(b.spent().subtract(b.limit()), 1, 'COMMA', 0, 'POINT')}">₹0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Recent -->
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    Recent expenses <a href="/expenses" class="small fw-normal">View all</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <tbody>
+                        <tr th:each="e : ${view.recent()}">
+                            <td>
+                                <div class="fw-semibold" th:text="${e.merchant}">Merchant</div>
+                                <div class="small text-secondary" th:text="${#temporals.format(e.expenseDate, 'dd MMM')}">01 Oct</div>
+                            </td>
+                            <td><span class="cat-badge"><i th:class="'bi ' + ${e.category.icon}" th:style="'color:' + ${e.category.color}"></i><span th:text="${e.category.label}">Food</span></span></td>
+                            <td class="text-end amount" th:text="${s + #numbers.formatDecimal(e.amount, 1, 'COMMA', 2, 'POINT')}">₹0</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    </th:block>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    const symbol = /*[[${currencySymbol}]]*/ '₹';
+    const catLabels = /*[[${view.categoryLabels()}]]*/ [];
+    const catValues = /*[[${view.categoryValues()}]]*/ [];
+    const catColors = /*[[${view.categoryColors()}]]*/ [];
+    const trendLabels = /*[[${view.trendLabels()}]]*/ [];
+    const trendValues = /*[[${view.trendValues()}]]*/ [];
+    const money = v => symbol + Math.round(v).toLocaleString('en-IN');
+
+    Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+    Chart.defaults.color = '#6b7280';
+
+    const categoryCanvas = document.getElementById('categoryChart');
+    if (categoryCanvas) {
+        new Chart(categoryCanvas, {
+            type: 'doughnut',
+            data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: catColors, borderWidth: 2, borderColor: '#fff' }] },
+            options: {
+                maintainAspectRatio: false, cutout: '68%',
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.label}: ${money(c.parsed)}` } } }
+            }
+        });
+    }
+    const trendCanvas = document.getElementById('trendChart');
+    if (trendCanvas) {
+        new Chart(trendCanvas, {
+            type: 'bar',
+            data: {
+                labels: trendLabels,
+                datasets: [{
+                    data: trendValues,
+                    backgroundColor: trendValues.map((_, i) => i === trendValues.length - 1 ? '#4f46e5' : '#c7d2fe'),
+                    borderRadius: 8, maxBarThickness: 48
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + money(c.parsed.y) } } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#eef0f6' }, ticks: { callback: v => money(v) } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // Show a spinner while the AI writes insights
+    document.querySelectorAll('.ai-form').forEach(f => f.addEventListener('submit', () => {
+        const btn = f.querySelector('button');
+        btn.disabled = true;
+        btn.querySelector('.spinner-border').classList.remove('d-none');
+        btn.querySelector('.bi').classList.add('d-none');
+    }));
+</script>
+</body>
+</html>

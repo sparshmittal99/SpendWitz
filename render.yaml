@@ -1,0 +1,16 @@
+# Render Blueprint: New > Blueprint > pick this repo. Secrets are entered in the Render dashboard.
+services:
+  - type: web
+    name: spendsense
+    runtime: docker
+    plan: free
+    healthCheckPath: /actuator/health/liveness
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DATABASE_URL        # jdbc:postgresql://<neon-host>/neondb?sslmode=require
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false

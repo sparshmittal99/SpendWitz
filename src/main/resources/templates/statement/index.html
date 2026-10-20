@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Import bank statement')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('add')}"></nav>
+
+<main class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+            <h2 class="page-title">Import a bank statement</h2>
+            <p class="text-secondary">
+                Upload your bank account or credit card statement and SpendSense adds the spending for you.
+                Salary, refunds, transfers to your own accounts and card bill payments are left out, ATM withdrawals go
+                to your cash wallet, and anything you've already added is flagged.
+            </p>
+
+            <div th:if="${currentUser.demo()}" class="alert alert-warning d-flex gap-2">
+                <i class="bi bi-shield-exclamation"></i>
+                <div>This is a <strong>shared demo account</strong>, so please don't upload your real statement here.
+                    Use the sample statements below, or create your own account.</div>
+            </div>
+
+            <form id="importForm" class="card p-4" th:action="@{/import}" method="post" enctype="multipart/form-data">
+                <label for="file" class="dropzone" id="dropzone">
+                    <i class="bi bi-bank"></i>
+                    <div class="fw-semibold mt-2">Drop your statement here, or click to choose</div>
+                    <div class="small text-secondary">PDF (downloaded from net banking), Excel (.xlsx / .xls) or CSV · up to 6 MB · one or two months</div>
+                    <div class="small fw-semibold text-primary mt-2" id="fileName"></div>
+                </label>
+                <input type="file" id="file" name="file" class="d-none" required accept=".pdf,.xlsx,.xls,.csv">
+                <div class="mt-3">
+                    <label for="password" class="form-label">File password <span class="text-secondary small">(if the file is protected)</span></label>
+                    <input type="password" id="password" name="password" class="form-control" autocomplete="off"
+                           placeholder="Banks often use part of your name + date of birth">
+                    <div class="form-text">Used only to open the file once. It's never stored.</div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg mt-3" id="importBtn" disabled>
+                    <i class="bi bi-stars"></i> Read statement
+                </button>
+            </form>
+
+            <div class="card p-4 mt-4">
+                <div class="fw-semibold">Try it with a sample statement</div>
+                <div class="small text-secondary mb-3">
+                    From a fictional "SpendSense Demo Bank", with a few of your recent payments mixed in so you can see
+                    duplicate detection. The sample PDF is password-protected like real bank statements
+                    (password: <code th:text="${samplePassword}">demo1234</code>).
+                </div>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <form th:action="@{/import/sample}" method="post" class="import-trigger">
+                        <input type="hidden" name="format" value="xlsx">
+                        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-file-earmark-spreadsheet"></i> Import sample Excel</button>
+                    </form>
+                    <form th:action="@{/import/sample}" method="post" class="import-trigger">
+                        <input type="hidden" name="format" value="pdf">
+                        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-file-earmark-pdf"></i> Import sample PDF</button>
+                    </form>
+                    <span class="small text-secondary ms-md-2">
+                        or download: <a href="/import/sample-statement.xlsx">Excel</a> · <a href="/import/sample-statement.pdf">PDF</a>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="loading-overlay" id="loading" role="status" aria-live="polite">
+    <div class="spinner-border text-primary" style="width:3rem;height:3rem" aria-hidden="true"></div>
+    <div class="fw-semibold">Reading your statement…</div>
+    <div class="small text-secondary">Finding transactions, cleaning up names and checking for duplicates. This can take 20–40 seconds.</div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script>
+    const fileInput = document.getElementById('file');
+    const dropzone = document.getElementById('dropzone');
+    const importBtn = document.getElementById('importBtn');
+    const showFile = () => {
+        const f = fileInput.files[0];
+        document.getElementById('fileName').textContent = f ? f.name : '';
+        importBtn.disabled = !f;
+    };
+    fileInput.addEventListener('change', showFile);
+    ['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('dragover'); }));
+    dropzone.addEventListener('drop', e => { fileInput.files = e.dataTransfer.files; showFile(); });
+
+    const showLoading = () => document.getElementById('loading').classList.add('show');
+    document.getElementById('importForm').addEventListener('submit', showLoading);
+    document.querySelectorAll('.import-trigger').forEach(f => f.addEventListener('submit', showLoading));
+    window.addEventListener('pageshow', () => document.getElementById('loading').classList.remove('show'));
+</script>
+</body>
+</html>

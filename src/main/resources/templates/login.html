@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Log in')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('login')}"></nav>
+
+<main class="container">
+    <div class="auth-card">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+        <div th:if="${param.error}" class="alert alert-danger">Wrong email or password.</div>
+        <div th:if="${param.logout}" class="alert alert-info">You've been logged out.</div>
+
+        <div id="demo" th:if="${demo.enabled()}" class="card ai-card p-4 mb-4">
+            <h5 class="fw-bold mb-1"><i class="bi bi-play-circle"></i> Explore the demo</h5>
+            <p class="text-secondary small mb-3">A shared account with 6 months of sample expenses. It resets every night.</p>
+            <form th:action="@{/login}" method="post">
+                <input type="hidden" name="username" th:value="${demo.email()}">
+                <input type="hidden" name="password" th:value="${demo.password()}">
+                <button class="btn btn-primary w-100" type="submit">Enter demo account</button>
+            </form>
+        </div>
+
+        <div class="card p-4">
+            <h4 class="fw-bold mb-3">Log in</h4>
+            <form th:action="@{/login}" method="post">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Email</label>
+                    <input type="email" id="username" name="username" class="form-control" required autofocus autocomplete="username">
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
+                </div>
+                <button class="btn btn-outline-primary w-100" type="submit">Log in</button>
+            </form>
+            <p class="small text-secondary mt-3 mb-0">New here? <a href="/register">Create an account</a></p>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

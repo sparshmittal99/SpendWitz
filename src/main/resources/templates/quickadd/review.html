@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Review expenses')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('add')}"></nav>
+
+<main class="container py-4">
+    <h2 class="page-title mb-1">Check and save</h2>
+    <p class="text-secondary">
+        AI found <strong th:text="${form.rows.size()}">3</strong> expense(s). Fix anything that's off and untick anything you don't want.
+    </p>
+
+    <div th:if="${originalText != null}" class="card ai-card p-3 mb-3">
+        <div class="small text-secondary">You wrote</div>
+        <div class="fw-semibold" th:text="'“' + ${originalText} + '”'">“sabzi 150, chai 20”</div>
+    </div>
+
+    <div th:if="${unclear != null and !unclear.isEmpty()}" class="alert alert-warning">
+        <i class="bi bi-question-circle"></i>
+        No amount found for: <strong th:text="${#strings.listJoin(unclear, ', ')}">bread</strong>. Add them as new rows below or on the Cash page.
+    </div>
+
+    <div th:if="${errors != null}" class="alert alert-danger">
+        <ul class="mb-0"><li th:each="e : ${errors}" th:text="${e}">error</li></ul>
+    </div>
+
+    <form id="reviewForm" th:action="@{/quick-add/save}" th:object="${form}" method="post" class="card">
+        <input type="hidden" th:field="*{voice}">
+        <div class="table-responsive">
+            <table class="table review-table mb-0">
+                <thead>
+                <tr>
+                    <th style="width:40px"><span class="visually-hidden">Include</span></th>
+                    <th>What</th>
+                    <th style="width:160px">Amount</th>
+                    <th>Category</th>
+                    <th style="width:160px">Date</th>
+                    <th style="width:140px">Paid with</th>
+                    <th>Note</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row, st : *{rows}">
+                    <td><input type="checkbox" class="form-check-input" th:field="*{rows[__${st.index}__].include}" aria-label="Include this expense"></td>
+                    <td><input type="text" class="form-control form-control-sm" th:field="*{rows[__${st.index}__].merchant}" maxlength="150" required></td>
+                    <td>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text" th:text="${currencySymbol}">₹</span>
+                            <input type="number" step="0.01" min="0.01" class="form-control" th:field="*{rows[__${st.index}__].amount}" required>
+                        </div>
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm" th:field="*{rows[__${st.index}__].category}">
+                            <option th:each="c : ${categories}" th:value="${c.name()}" th:text="${c.label}">Food</option>
+                        </select>
+                    </td>
+                    <td><input type="date" class="form-control form-control-sm" th:field="*{rows[__${st.index}__].expenseDate}"></td>
+                    <td>
+                        <select class="form-select form-select-sm" th:field="*{rows[__${st.index}__].paymentMethod}">
+                            <option th:each="m : ${methods}" th:value="${m.name()}" th:text="${m.label}">UPI</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="form-control form-control-sm" th:field="*{rows[__${st.index}__].note}" maxlength="500"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="p-3 border-top d-flex flex-wrap gap-2 align-items-center">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save ticked expenses</button>
+            <a href="/quick-add" class="btn btn-light">Start over</a>
+            <span class="ms-auto small text-secondary">Total: <strong class="amount" id="total"></strong></span>
+        </div>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:inline="javascript">
+    const symbol = /*[[${currencySymbol}]]*/ '₹';
+    const form = document.getElementById('reviewForm');
+    const updateTotal = () => {
+        let total = 0;
+        form.querySelectorAll('tbody tr').forEach(row => {
+            const include = row.querySelector('input[type=checkbox]').checked;
+            const amount = parseFloat(row.querySelector('input[type=number]').value) || 0;
+            if (include) total += amount;
+            row.classList.toggle('opacity-50', !include);
+        });
+        document.getElementById('total').textContent = symbol + total.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    };
+    form.addEventListener('input', updateTotal);
+    form.addEventListener('change', updateTotal);
+    updateTotal();
+</script>
+</body>
+</html>

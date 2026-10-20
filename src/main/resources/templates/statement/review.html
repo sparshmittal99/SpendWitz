@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Review statement')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('add')}"></nav>
+
+<main class="container py-4" th:with="s=${currencySymbol}">
+    <h2 class="page-title mb-1">Review your statement</h2>
+    <p class="text-secondary mb-3" th:if="${fileName != null}">
+        <i class="bi bi-file-earmark-text"></i> <span th:text="${fileName}">statement.pdf</span>
+    </p>
+
+    <div th:if="${preview != null}" class="d-flex flex-wrap gap-2 mb-3">
+        <span class="cat-badge"><i class="bi bi-receipt text-primary"></i> <span th:text="${form.rows.size()} + ' outgoing transactions'">12 outgoing</span></span>
+        <span class="cat-badge" th:if="${preview.duplicates() > 0}"><i class="bi bi-files text-warning"></i>
+            <span th:text="${preview.duplicates()} + ' already in SpendSense (unticked)'">2 duplicates</span></span>
+        <span class="cat-badge" th:if="${!preview.skipped().isEmpty()}"><i class="bi bi-skip-forward text-secondary"></i>
+            <span th:text="${preview.skipped().size()} + ' skipped (not spending)'">3 skipped</span></span>
+        <span class="cat-badge" th:if="${preview.creditsIgnored() > 0}"><i class="bi bi-arrow-down-left text-success"></i>
+            <span th:text="${preview.creditsIgnored()} + ' money-in ignored'">2 credits</span></span>
+        <span class="cat-badge" th:if="${preview.needsCheck() > 0}"><i class="bi bi-exclamation-triangle text-danger"></i>
+            <span th:text="${preview.needsCheck()} + ' amounts to double-check'">1 check</span></span>
+    </div>
+
+    <div th:if="${errors != null}" class="alert alert-danger">
+        <ul class="mb-0"><li th:each="e : ${errors}" th:text="${e}">error</li></ul>
+    </div>
+
+    <form id="reviewForm" th:action="@{/import/save}" th:object="${form}" method="post" class="card">
+        <div class="table-responsive">
+            <table class="table review-table align-middle mb-0">
+                <thead>
+                <tr>
+                    <th style="width:40px"><input type="checkbox" class="form-check-input" id="toggleAll" aria-label="Tick or untick all"></th>
+                    <th style="width:150px">Date</th>
+                    <th>Merchant</th>
+                    <th style="width:150px">Amount</th>
+                    <th>Category</th>
+                    <th style="width:140px">Paid with</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row, st : *{rows}" th:classappend="${row.duplicateOf != null} ? 'table-warning'">
+                    <td>
+                        <input type="checkbox" class="form-check-input row-include" th:field="*{rows[__${st.index}__].include}" aria-label="Import this transaction">
+                        <input type="hidden" th:field="*{rows[__${st.index}__].kind}">
+                        <input type="hidden" th:field="*{rows[__${st.index}__].note}">
+                        <input type="hidden" th:field="*{rows[__${st.index}__].duplicateOf}">
+                        <input type="hidden" th:field="*{rows[__${st.index}__].needsCheck}">
+                    </td>
+                    <td><input type="date" class="form-control form-control-sm" th:field="*{rows[__${st.index}__].expenseDate}"></td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm" th:field="*{rows[__${st.index}__].merchant}" maxlength="150">
+                        <div class="small text-secondary text-truncate mt-1" style="max-width:340px" th:text="${row.note}" th:title="${row.note}">UPI/DR/...</div>
+                        <div th:if="${row.duplicateOf != null}" class="small text-warning-emphasis"><i class="bi bi-files"></i> <span th:text="${row.duplicateOf}">Already added</span></div>
+                        <div th:if="${row.needsCheck}" class="small text-danger"><i class="bi bi-exclamation-triangle"></i> Check this amount against your statement</div>
+                    </td>
+                    <td>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text" th:text="${s}">₹</span>
+                            <input type="number" step="0.01" min="0.01" class="form-control row-amount" th:field="*{rows[__${st.index}__].amount}">
+                        </div>
+                    </td>
+                    <td th:if="${row.atmWithdrawal}" colspan="2">
+                        <span class="cat-badge"><i class="bi bi-cash-coin text-success"></i> ATM withdrawal → added to your cash wallet</span>
+                        <input type="hidden" th:field="*{rows[__${st.index}__].category}">
+                        <input type="hidden" th:field="*{rows[__${st.index}__].paymentMethod}">
+                    </td>
+                    <td th:unless="${row.atmWithdrawal}">
+                        <select class="form-select form-select-sm" th:field="*{rows[__${st.index}__].category}">
+                            <option th:each="c : ${categories}" th:value="${c.name()}" th:text="${c.label}">Food</option>
+                        </select>
+                    </td>
+                    <td th:unless="${row.atmWithdrawal}">
+                        <select class="form-select form-select-sm" th:field="*{rows[__${st.index}__].paymentMethod}">
+                            <option th:each="m : ${paymentMethods}" th:value="${m.name()}" th:text="${m.label}">UPI</option>
+                        </select>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="p-3 border-top d-flex flex-wrap gap-2 align-items-center">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Import ticked transactions</button>
+            <a href="/import" class="btn btn-light">Cancel</a>
+            <span class="ms-auto small text-secondary">Ticked total: <strong class="amount" id="total"></strong></span>
+        </div>
+    </form>
+
+    <div th:if="${preview != null and !preview.skipped().isEmpty()}" class="card mt-4">
+        <div class="card-header">Skipped because they aren't spending</div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <tbody>
+                <tr th:each="k : ${preview.skipped()}">
+                    <td class="text-nowrap" th:text="${#temporals.format(k.date(), 'dd MMM')}">01 Oct</td>
+                    <td class="small text-secondary" th:text="${k.description()}">ACH D- MUTUAL FUND</td>
+                    <td><span class="cat-badge" th:text="${k.reason()}">Investment</span></td>
+                    <td class="text-end amount" th:text="${s + #numbers.formatDecimal(k.amount(), 1, 'COMMA', 2, 'POINT')}">₹0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:inline="javascript">
+    const symbol = /*[[${currencySymbol}]]*/ '₹';
+    const form = document.getElementById('reviewForm');
+    const boxes = () => form.querySelectorAll('.row-include');
+    const updateTotal = () => {
+        let total = 0;
+        form.querySelectorAll('tbody tr').forEach(row => {
+            const include = row.querySelector('.row-include').checked;
+            if (include) total += parseFloat(row.querySelector('.row-amount').value) || 0;
+            row.classList.toggle('opacity-50', !include);
+        });
+        document.getElementById('total').textContent = symbol + total.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+        const all = [...boxes()];
+        document.getElementById('toggleAll').checked = all.length > 0 && all.every(b => b.checked);
+    };
+    document.getElementById('toggleAll').addEventListener('change', e => {
+        boxes().forEach(b => b.checked = e.target.checked);
+        updateTotal();
+    });
+    form.addEventListener('input', updateTotal);
+    form.addEventListener('change', updateTotal);
+    updateTotal();
+</script>
+</body>
+</html>

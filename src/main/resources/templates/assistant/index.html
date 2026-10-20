@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Ask AI')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('assistant')}"></nav>
+
+<main class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h2 class="page-title mb-0">Ask about your spending</h2>
+            <span class="small text-secondary">The AI answers by calling read-only tools on your data</span>
+        </div>
+        <button id="resetBtn" class="btn btn-sm btn-light"><i class="bi bi-arrow-counterclockwise"></i> New chat</button>
+    </div>
+
+    <div class="card chat-card">
+        <div class="chat-messages" id="messages" aria-live="polite">
+            <div class="msg msg-ai" id="welcome">
+                <p class="mb-2">Hi! I can answer questions about your expenses using your real data. Try one of these:</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-sm btn-outline-primary suggestion">How much did I spend this month?</button>
+                    <button class="btn btn-sm btn-outline-primary suggestion">Compare Swiggy vs Zomato in the last 3 months</button>
+                    <button class="btn btn-sm btn-outline-primary suggestion">Am I over budget anywhere?</button>
+                    <button class="btn btn-sm btn-outline-primary suggestion">How much cash did I spend this month, and on what?</button>
+                    <button class="btn btn-sm btn-outline-primary suggestion">What did I spend on the Goa trip?</button>
+                    <button class="btn btn-sm btn-outline-primary suggestion">Where can I cut back next month?</button>
+                </div>
+            </div>
+        </div>
+        <form id="chatForm" class="border-top p-3 d-flex gap-2">
+            <label for="chatInput" class="visually-hidden">Your question</label>
+            <input id="chatInput" class="form-control" placeholder="e.g. What were my 5 biggest expenses last month?"
+                   maxlength="500" autocomplete="off" required>
+            <button class="btn btn-primary" type="submit" id="sendBtn" aria-label="Send"><i class="bi bi-send"></i></button>
+        </form>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<script src="/js/assistant.js"></script>
+</body>
+</html>

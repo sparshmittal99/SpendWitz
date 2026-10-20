@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Expenses')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('expenses')}"></nav>
+
+<main class="container py-4" th:with="s=${currencySymbol}">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h2 class="page-title mb-0">Expenses</h2>
+        <div class="d-flex gap-2">
+            <a href="/quick-add" class="btn btn-primary"><i class="bi bi-mic"></i> Type or speak</a>
+            <a href="/receipts/scan" class="btn btn-outline-primary"><i class="bi bi-camera"></i> Scan</a>
+            <a href="/cash" class="btn btn-outline-success"><i class="bi bi-cash-coin"></i> Cash</a>
+        </div>
+    </div>
+
+    <form class="card p-3 mb-3" method="get" action="/expenses">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label small text-secondary" for="q">Merchant or note</label>
+                <input type="search" id="q" name="q" th:value="${q}" class="form-control" placeholder="e.g. Swiggy">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-secondary" for="method">Paid with</label>
+                <select id="method" name="method" class="form-select">
+                    <option value="">All</option>
+                    <option th:each="m : ${paymentMethods}" th:value="${m.name()}" th:text="${m.label}"
+                            th:selected="${m == method}">UPI</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-secondary" for="category">Category</label>
+                <select id="category" name="category" class="form-select">
+                    <option value="">All</option>
+                    <option th:each="c : ${categories}" th:value="${c.name()}" th:text="${c.label}"
+                            th:selected="${c == category}">Food</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-secondary" for="from">From</label>
+                <input type="date" id="from" name="from" th:value="${from}" class="form-control">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-secondary" for="to">To</label>
+                <input type="date" id="to" name="to" th:value="${to}" class="form-control">
+            </div>
+            <div class="col-6 col-md-1 d-grid">
+                <button class="btn btn-outline-primary" type="submit" aria-label="Filter"><i class="bi bi-funnel"></i></button>
+            </div>
+        </div>
+    </form>
+
+    <div class="card">
+        <div th:if="${page.isEmpty()}" class="p-5 text-center text-secondary">
+            No expenses match. <a href="/expenses/new">Add one</a> or <a href="/expenses">clear filters</a>.
+        </div>
+        <div class="table-responsive" th:unless="${page.isEmpty()}">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Merchant</th>
+                    <th class="d-none d-md-table-cell">Category</th>
+                    <th class="text-end">Amount</th>
+                    <th class="text-end"><span class="visually-hidden">Actions</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${page.content}">
+                    <td class="text-nowrap" th:text="${#temporals.format(e.expenseDate, 'dd MMM yyyy')}">01 Oct 2026</td>
+                    <td>
+                        <div class="fw-semibold">
+                            <span th:text="${e.merchant}">Merchant</span>
+                            <i th:if="${e.source.name() == 'RECEIPT'}" class="bi bi-receipt text-primary ms-1" title="Scanned receipt"></i>
+                            <i th:if="${e.source.name() == 'VOICE'}" class="bi bi-mic text-primary ms-1" title="Added by voice"></i>
+                            <i th:if="${e.source.name() == 'STATEMENT'}" class="bi bi-bank text-primary ms-1" title="Imported from bank statement"></i>
+                        </div>
+                        <div class="small text-secondary" th:if="${e.note}" th:text="${e.note}">note</div>
+                        <div class="d-md-none mt-1"><span class="cat-badge" th:text="${e.category.label}">Food</span></div>
+                    </td>
+                    <td class="d-none d-md-table-cell">
+                        <span class="cat-badge"><i th:class="'bi ' + ${e.category.icon}" th:style="'color:' + ${e.category.color}"></i><span th:text="${e.category.label}">Food</span></span>
+                    </td>
+                    <td class="text-end">
+                        <div class="amount" th:text="${s + #numbers.formatDecimal(e.amount, 1, 'COMMA', 2, 'POINT')}">₹0</div>
+                        <span class="method-badge"><i th:class="'bi ' + ${e.paymentMethod.icon}"></i><span th:text="${e.paymentMethod.label}">UPI</span></span>
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <a th:href="@{/expenses/{id}/edit(id=${e.id})}" class="btn btn-sm btn-light" aria-label="Edit"><i class="bi bi-pencil"></i></a>
+                        <form th:action="@{/expenses/{id}/delete(id=${e.id})}" method="post" class="d-inline"
+                              th:data-confirm-title="${'Delete ' + e.merchant + '?'}"
+                              th:data-confirm="${s + #numbers.formatDecimal(e.amount, 1, 'COMMA', 2, 'POINT') + ' on ' + #temporals.format(e.expenseDate, 'd MMM yyyy') + ' will be permanently removed.'}">
+                            <button type="submit" class="btn btn-sm btn-light text-danger" aria-label="Delete"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <nav th:if="${page.totalPages > 1}" class="mt-3 d-flex justify-content-between align-items-center" aria-label="Pages">
+        <span class="small text-secondary" th:text="${page.totalElements} + ' expenses'">0 expenses</span>
+        <ul class="pagination mb-0">
+            <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/expenses(page=${page.number - 1}, q=${q}, category=${category}, method=${method}, from=${from}, to=${to})}">Previous</a>
+            </li>
+            <li class="page-item disabled"><span class="page-link" th:text="${page.number + 1} + ' / ' + ${page.totalPages}">1 / 1</span></li>
+            <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/expenses(page=${page.number + 1}, q=${q}, category=${category}, method=${method}, from=${from}, to=${to})}">Next</a>
+            </li>
+        </ul>
+    </nav>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

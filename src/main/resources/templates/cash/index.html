@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Cash')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('cash')}"></nav>
+
+<main class="container py-4" th:with="s=${currencySymbol}">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h2 class="page-title mb-0">Cash</h2>
+            <span class="text-secondary">For everything you pay in cash without a bill: chai, sabzi, autos, the kirana store.</span>
+        </div>
+        <a href="/quick-add?method=CASH" class="btn btn-outline-primary"><i class="bi bi-mic"></i> Speak several at once</a>
+    </div>
+
+    <!-- Wallet summary -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card wallet-card p-3 h-100">
+                <div class="small opacity-75">Cash in hand</div>
+                <th:block th:if="${summary.tracking()}">
+                    <div class="kpi-value amount" th:text="${s + #numbers.formatDecimal(summary.cashInHand(), 1, 'COMMA', 0, 'POINT')}">₹0</div>
+                    <div class="small opacity-75" th:if="${summary.cashInHand().signum() < 0}">
+                        You've logged more cash spending than cash added. Add a withdrawal below.
+                    </div>
+                </th:block>
+                <div th:unless="${summary.tracking()}" class="small mt-1">
+                    Add an ATM withdrawal below to start tracking how much cash you have left.
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card p-3 h-100">
+                <div class="kpi-label">Cash spent this month</div>
+                <div class="kpi-value amount" th:text="${s + #numbers.formatDecimal(summary.spentThisMonth(), 1, 'COMMA', 0, 'POINT')}">₹0</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card p-3 h-100">
+                <div class="kpi-label">Cash spent today</div>
+                <div class="kpi-value amount" th:text="${s + #numbers.formatDecimal(summary.spentToday(), 1, 'COMMA', 0, 'POINT')}">₹0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <!-- Quick cash expense -->
+            <form class="card p-4 mb-4" th:action="@{/cash/expense}" th:object="${form}" method="post" novalidate>
+                <h5 class="fw-bold mb-3"><i class="bi bi-cash-coin text-success"></i> Add a cash expense</h5>
+                <div class="d-flex flex-wrap gap-2 mb-3" aria-label="Common cash purchases">
+                    <button type="button" class="btn btn-sm btn-light chip-btn preset" data-what="Chai" data-category="FOOD_DINING" data-amount="20">☕ Chai</button>
+                    <button type="button" class="btn btn-sm btn-light chip-btn preset" data-what="Sabzi" data-category="GROCERIES">🥬 Sabzi</button>
+                    <button type="button" class="btn btn-sm btn-light chip-btn preset" data-what="Doodh" data-category="GROCERIES">🥛 Milk</button>
+                    <button type="button" class="btn btn-sm btn-light chip-btn preset" data-what="Kirana store" data-category="GROCERIES">🛒 Kirana</button>
+                    <button type="button" class="btn btn-sm btn-light chip-btn preset" data-what="Auto" data-category="TRANSPORT">🛺 Auto</button>
+                    <button type="button" class="btn btn-sm btn-light chip-btn preset" data-what="Snacks" data-category="FOOD_DINING">🥟 Snacks</button>
+                    <button type="button" class="btn btn-sm btn-light chip-btn preset" data-what="Medicine" data-category="HEALTH">💊 Medicine</button>
+                    <button type="button" class="btn btn-sm btn-light chip-btn preset" data-what="Petrol" data-category="TRANSPORT">⛽ Petrol</button>
+                </div>
+                <div class="mb-3">
+                    <label for="what" class="form-label">What for</label>
+                    <input type="text" th:field="*{what}" class="form-control" th:errorclass="is-invalid" maxlength="150"
+                           placeholder="e.g. Sabzi, Sharma Kirana Store">
+                    <div class="invalid-feedback" th:errors="*{what}"></div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label for="amount" class="form-label">Amount</label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text" th:text="${s}">₹</span>
+                            <input type="number" step="0.01" min="0.01" inputmode="decimal" th:field="*{amount}" class="form-control" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:errors="*{amount}"></div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" th:field="*{date}" class="form-control" th:errorclass="is-invalid">
+                    </div>
+                    <div class="col-12">
+                        <label for="category" class="form-label">Category</label>
+                        <select th:field="*{category}" class="form-select" th:errorclass="is-invalid">
+                            <option value="">Choose…</option>
+                            <option th:each="c : ${categories}" th:value="${c.name()}" th:text="${c.label}">Food</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{category}"></div>
+                    </div>
+                    <div class="col-12">
+                        <label for="note" class="form-label">Note <span class="text-secondary small">(optional)</span></label>
+                        <input type="text" th:field="*{note}" class="form-control" maxlength="500" placeholder="e.g. tomatoes and onions">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success w-100 mt-3"><i class="bi bi-plus-lg"></i> Add cash expense</button>
+            </form>
+
+            <!-- Cash in -->
+            <form class="card p-4" th:action="@{/cash/topup}" th:object="${topUp}" method="post" novalidate>
+                <h6 class="fw-bold mb-1"><i class="bi bi-box-arrow-in-down"></i> Cash added to wallet</h6>
+                <p class="small text-secondary">ATM withdrawals or cash you received. Used to calculate cash in hand.</p>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label for="topUpAmount" class="form-label small">Amount</label>
+                        <input type="number" step="1" min="1" id="topUpAmount" th:field="*{amount}" class="form-control form-control-sm" th:errorclass="is-invalid">
+                        <div class="invalid-feedback" th:errors="*{amount}"></div>
+                    </div>
+                    <div class="col-6">
+                        <label for="topUpDate" class="form-label small">Date</label>
+                        <input type="date" id="topUpDate" th:field="*{date}" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-12">
+                        <label for="topUpNote" class="form-label small">Note</label>
+                        <input type="text" id="topUpNote" th:field="*{note}" class="form-control form-control-sm" maxlength="200">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-outline-success btn-sm mt-3">Add to wallet</button>
+                <ul class="list-unstyled small mt-3 mb-0" th:unless="${summary.recentTopUps().isEmpty()}">
+                    <li th:each="t : ${summary.recentTopUps()}" class="d-flex justify-content-between align-items-center py-1 border-top">
+                        <span><span th:text="${#temporals.format(t.entryDate, 'dd MMM')}">01 Oct</span> · <span th:text="${t.note ?: 'Cash in'}">ATM</span></span>
+                        <span>
+                            <span class="amount text-success" th:text="'+' + ${s + #numbers.formatDecimal(t.amount, 1, 'COMMA', 0, 'POINT')}">+₹3,000</span>
+                            <button type="submit" class="btn btn-link btn-sm text-danger p-0 ms-2" aria-label="Remove entry"
+                                    th:formaction="@{/cash/topup/{id}/delete(id=${t.id})}" formnovalidate
+                                    data-confirm-title="Remove this cash entry?" data-confirm-ok="Remove"
+                                    th:data-confirm="${'+' + s + #numbers.formatDecimal(t.amount, 1, 'COMMA', 0, 'POINT') + ' will be taken out of your cash in hand.'}"><i class="bi bi-x-lg"></i></button>
+                        </span>
+                    </li>
+                </ul>
+            </form>
+        </div>
+
+        <!-- Recent cash spending -->
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    Recent cash spending
+                    <a href="/expenses?method=CASH" class="small fw-normal">View all</a>
+                </div>
+                <div th:if="${summary.recentCashExpenses().isEmpty()}" class="p-4 text-secondary">
+                    No cash expenses yet. Tap a button on the left to add one in seconds.
+                </div>
+                <div class="table-responsive" th:unless="${summary.recentCashExpenses().isEmpty()}">
+                    <table class="table align-middle mb-0">
+                        <tbody>
+                        <tr th:each="e : ${summary.recentCashExpenses()}">
+                            <td>
+                                <div class="fw-semibold" th:text="${e.merchant}">Chai</div>
+                                <div class="small text-secondary">
+                                    <span th:text="${#temporals.format(e.expenseDate, 'dd MMM')}">01 Oct</span>
+                                    <span th:if="${e.note}" th:text="' · ' + ${e.note}"></span>
+                                </div>
+                            </td>
+                            <td><span class="cat-badge"><i th:class="'bi ' + ${e.category.icon}" th:style="'color:' + ${e.category.color}"></i><span th:text="${e.category.label}">Food</span></span></td>
+                            <td class="text-end amount" th:text="${s + #numbers.formatDecimal(e.amount, 1, 'COMMA', 0, 'POINT')}">₹20</td>
+                            <td class="text-end"><a th:href="@{/expenses/{id}/edit(id=${e.id})}" class="btn btn-sm btn-light" aria-label="Edit"><i class="bi bi-pencil"></i></a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script>
+    document.querySelectorAll('.preset').forEach(btn => btn.addEventListener('click', () => {
+        document.getElementById('what').value = btn.dataset.what;
+        document.getElementById('category').value = btn.dataset.category;
+        const amount = document.getElementById('amount');
+        if (btn.dataset.amount && !amount.value) amount.value = btn.dataset.amount;
+        amount.focus();
+        amount.select();
+    }));
+</script>
+</body>
+</html>

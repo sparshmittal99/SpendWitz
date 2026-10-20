@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Budgets')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('budgets')}"></nav>
+
+<main class="container py-4" th:with="s=${currencySymbol}">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+            <h2 class="page-title">Monthly budgets</h2>
+            <p class="text-secondary">Set a monthly limit for the categories you want to watch. Leave a field empty for no limit.</p>
+
+            <form th:action="@{/budgets}" method="post" class="card">
+                <div class="list-group list-group-flush">
+                    <div th:each="c : ${categories}" class="list-group-item py-3">
+                        <div class="row align-items-center g-2">
+                            <div class="col-6 col-md-5">
+                                <label th:for="${c.name()}" class="fw-semibold d-flex align-items-center gap-2 mb-0">
+                                    <i th:class="'bi ' + ${c.icon}" th:style="'color:' + ${c.color}"></i>
+                                    <span th:text="${c.label}">Food</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text" th:text="${s}">₹</span>
+                                    <input type="number" min="0" step="1" class="form-control" th:id="${c.name()}" th:name="${c.name()}"
+                                           th:value="${limits.get(c) != null} ? ${limits.get(c).stripTrailingZeros().toPlainString()} : ''" placeholder="No limit">
+                                </div>
+                            </div>
+                            <div class="col-md-3 small text-secondary text-md-end">
+                                <th:block th:each="st : ${statuses}" th:if="${st.category() == c}">
+                                    <span th:classappend="${st.overBudget()} ? 'text-danger fw-semibold'"
+                                          th:text="${st.percentUsed()} + '% used this month'">50% used</span>
+                                </th:block>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-3 border-top">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save budgets</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

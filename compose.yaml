@@ -1,0 +1,15 @@
+# Local development database. `./mvnw spring-boot:run` starts this automatically (spring-boot-docker-compose).
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: spendsense
+      POSTGRES_USER: spendsense
+      POSTGRES_PASSWORD: spendsense
+    ports:
+      - "5432:5432"
+    volumes:
+      - spendsense-data:/var/lib/postgresql/data
+
+volumes:
+  spendsense-data:

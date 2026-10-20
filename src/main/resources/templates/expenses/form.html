@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head(${expenseId != null} ? 'Edit expense' : 'Add expense')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('expenses')}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="mb-3">
+        <h2 class="page-title mb-0"
+            th:text="${categoryReason != null} ? (${form.source.name() == 'UPI_SCREENSHOT'} ? 'Review UPI payment' : 'Review scanned receipt') : (${expenseId != null} ? 'Edit expense' : 'Add expense')">Add expense</h2>
+        <p th:if="${categoryReason != null}" class="text-secondary mb-0">
+            AI filled this in from your upload. Check it, fix anything that's off, then save.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5" th:if="${receiptPreview != null}">
+            <div class="card p-3 sticky-lg-top" style="top:80px">
+                <img th:src="${receiptPreview}" class="receipt-preview" alt="Uploaded receipt">
+            </div>
+        </div>
+
+        <div th:class="${receiptPreview != null} ? 'col-lg-7' : 'col-lg-8'">
+            <form id="expenseForm" class="card p-4" method="post" novalidate th:object="${form}"
+                  th:action="${expenseId != null} ? @{/expenses/{id}(id=${expenseId})} : @{/expenses}">
+                <input type="hidden" th:field="*{source}">
+
+                <div th:if="${categoryReason != null}" class="alert ai-card border-0 d-flex gap-2 align-items-start">
+                    <i class="bi bi-stars text-primary"></i>
+                    <div><strong>Category:</strong> <span th:text="${categoryReason}">reason</span>
+                        Change it if it's wrong, and SpendSense will remember next time.</div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-7">
+                        <label for="merchant" class="form-label">Merchant</label>
+                        <input type="text" th:field="*{merchant}" class="form-control" th:errorclass="is-invalid" maxlength="150" required>
+                        <div class="invalid-feedback" th:errors="*{merchant}"></div>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="amount" class="form-label">Amount</label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text" th:text="${currencySymbol}">₹</span>
+                            <input type="number" step="0.01" min="0.01" th:field="*{amount}" class="form-control" th:errorclass="is-invalid" required>
+                            <div class="invalid-feedback" th:errors="*{amount}"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <label for="category" class="form-label">Category</label>
+                        <select th:field="*{category}" class="form-select" th:errorclass="is-invalid" required>
+                            <option value="">Choose…</option>
+                            <option th:each="c : ${categories}" th:value="${c.name()}" th:text="${c.label}">Food</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{category}"></div>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="expenseDate" class="form-label">Date</label>
+                        <input type="date" th:field="*{expenseDate}" class="form-control" th:errorclass="is-invalid" required>
+                        <div class="invalid-feedback" th:errors="*{expenseDate}"></div>
+                    </div>
+                    <div class="col-12">
+                        <span class="form-label d-block">Paid with</span>
+                        <div class="btn-group flex-wrap" role="group" aria-label="Payment method">
+                            <th:block th:each="m : ${paymentMethods}">
+                                <input type="radio" class="btn-check" th:field="*{paymentMethod}" th:value="${m.name()}" th:id="'pm-' + ${m.name()}">
+                                <label class="btn btn-outline-primary btn-sm" th:for="'pm-' + ${m.name()}"><i th:class="'bi ' + ${m.icon}"></i> <span th:text="${m.label}">UPI</span></label>
+                            </th:block>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label for="note" class="form-label">Note <span class="text-secondary small">(optional)</span></label>
+                        <input type="text" th:field="*{note}" class="form-control" th:errorclass="is-invalid" maxlength="500"
+                               placeholder="e.g. Coffee near office, birthday gift for Riya">
+                        <div class="form-text">Notes make smart search and the AI assistant better.</div>
+                        <div class="invalid-feedback" th:errors="*{note}"></div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-semibold mb-0">Items <span class="text-secondary small fw-normal">(optional)</span></h6>
+                        <button type="button" id="addItem" class="btn btn-sm btn-light"><i class="bi bi-plus"></i> Add item</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead><tr><th>Name</th><th style="width:90px">Qty</th><th style="width:130px">Price</th><th style="width:40px"></th></tr></thead>
+                            <tbody id="items">
+                            <tr th:each="item, st : *{items}" class="item-row">
+                                <td><input type="text" class="form-control form-control-sm" data-field="name" th:field="*{items[__${st.index}__].name}" maxlength="200"></td>
+                                <td><input type="number" step="0.01" class="form-control form-control-sm" data-field="quantity" th:field="*{items[__${st.index}__].quantity}"></td>
+                                <td><input type="number" step="0.01" class="form-control form-control-sm" data-field="price" th:field="*{items[__${st.index}__].price}"></td>
+                                <td><button type="button" class="btn btn-sm btn-link text-danger remove-item" aria-label="Remove item"><i class="bi bi-x-lg"></i></button></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save expense</button>
+                    <a href="/expenses" class="btn btn-light">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <template id="itemTemplate">
+        <tr class="item-row">
+            <td><input type="text" class="form-control form-control-sm" data-field="name" maxlength="200"></td>
+            <td><input type="number" step="0.01" class="form-control form-control-sm" data-field="quantity" value="1"></td>
+            <td><input type="number" step="0.01" class="form-control form-control-sm" data-field="price"></td>
+            <td><button type="button" class="btn btn-sm btn-link text-danger remove-item" aria-label="Remove item"><i class="bi bi-x-lg"></i></button></td>
+        </tr>
+    </template>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script>
+    const itemsBody = document.getElementById('items');
+    document.getElementById('addItem').addEventListener('click', () => {
+        itemsBody.appendChild(document.getElementById('itemTemplate').content.cloneNode(true));
+        itemsBody.lastElementChild.querySelector('input').focus();
+    });
+    itemsBody.addEventListener('click', e => {
+        const btn = e.target.closest('.remove-item');
+        if (btn) btn.closest('tr').remove();
+    });
+    // Renumber rows so Spring binds items[0..n] without gaps
+    document.getElementById('expenseForm').addEventListener('submit', () => {
+        itemsBody.querySelectorAll('.item-row').forEach((row, i) => {
+            row.querySelectorAll('[data-field]').forEach(input => {
+                input.name = `items[${i}].${input.dataset.field}`;
+                input.removeAttribute('id');
+            });
+        });
+    });
+</script>
+</body>
+</html>

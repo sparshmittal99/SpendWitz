@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Quick add')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('add')}"></nav>
+
+<main class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+            <h2 class="page-title">Type it or say it</h2>
+            <p class="text-secondary">
+                No bill? Just describe what you spent, in English, Hindi or Hinglish. AI splits it into separate
+                expenses, and you check them before saving.
+            </p>
+
+            <form id="quickForm" class="card p-4" th:action="@{/quick-add}" method="post">
+                <input type="hidden" name="voice" id="voiceFlag" value="false">
+                <label for="text" class="form-label fw-semibold">What did you spend on?</label>
+                <div class="d-flex gap-3 align-items-start">
+                    <textarea id="text" name="text" class="form-control quick-textarea" maxlength="600" required
+                              placeholder="e.g. sabzi 150, chai 20, auto 60 to office, kal kirana se atta 320"></textarea>
+                    <div class="text-center">
+                        <button type="button" id="micBtn" class="btn btn-outline-primary mic-btn" title="Speak instead of typing"
+                                aria-label="Start voice input"><i class="bi bi-mic-fill"></i></button>
+                        <select id="voiceLang" class="form-select form-select-sm mt-2" aria-label="Voice language" style="width:auto">
+                            <option value="en-IN">English</option>
+                            <option value="hi-IN">हिंदी</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="micStatus" class="small text-secondary mt-2" aria-live="polite"></div>
+
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <span class="small text-secondary align-self-center">Try:</span>
+                    <button type="button" class="btn btn-sm btn-light chip-btn example">sabzi 180, doodh 60, chai 20</button>
+                    <button type="button" class="btn btn-sm btn-light chip-btn example">auto 80 to metro and 45 for samosa</button>
+                    <button type="button" class="btn btn-sm btn-light chip-btn example">yesterday paid 350 to Gupta store by gpay for atta and oil</button>
+                    <button type="button" class="btn btn-sm btn-light chip-btn example">kal 500 ka petrol, aaj 120 ki dawai</button>
+                </div>
+
+                <div class="row g-3 align-items-end mt-2">
+                    <div class="col-sm-6">
+                        <label for="method" class="form-label small text-secondary">Paid with (unless you say otherwise)</label>
+                        <select id="method" name="method" class="form-select">
+                            <option th:each="m : ${methods}" th:value="${m.name()}" th:text="${m.label}"
+                                    th:selected="${m == method}">UPI</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-stars"></i> Extract expenses</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="card p-4 mt-4 d-flex flex-md-row align-items-md-center justify-content-between gap-3">
+                <div>
+                    <div class="fw-semibold"><i class="bi bi-cash-coin text-success"></i> Just one cash payment?</div>
+                    <div class="small text-secondary">The Cash page has one-tap buttons for chai, sabzi, autos and more, with no AI needed.</div>
+                </div>
+                <a href="/cash" class="btn btn-outline-primary">Go to Cash</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="loading-overlay" id="loading" role="status" aria-live="polite">
+    <div class="spinner-border text-primary" style="width:3rem;height:3rem" aria-hidden="true"></div>
+    <div class="fw-semibold">Understanding your expenses…</div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script src="/js/quick-add.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Smart search')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('search')}"></nav>
+
+<main class="container py-4" th:with="s=${currencySymbol}">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <h2 class="page-title">Smart search</h2>
+            <p class="text-secondary">
+                Search by meaning, not exact words. Try <a href="/search?q=coffee near the office">coffee near the office</a>,
+                <a href="/search?q=gift for a friend">gift for a friend</a> or <a href="/search?q=the Goa trip">the Goa trip</a>.
+            </p>
+            <form method="get" action="/search" class="card p-3 mb-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-stars text-primary"></i></span>
+                    <label for="q" class="visually-hidden">Search</label>
+                    <input type="search" id="q" name="q" th:value="${q}" class="form-control form-control-lg"
+                           placeholder="Describe what you're looking for…" maxlength="200" autofocus>
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </div>
+            </form>
+
+            <div th:if="${error}" class="alert alert-warning" th:text="${error}">error</div>
+
+            <div th:if="${results != null}" class="card">
+                <div th:if="${results.isEmpty()}" class="p-4 text-secondary">
+                    Nothing similar found. If you just added expenses, give indexing a few seconds.
+                </div>
+                <div class="list-group list-group-flush" th:unless="${results.isEmpty()}">
+                    <a th:each="r : ${results}" th:href="@{/expenses/{id}/edit(id=${r.expense().id})}"
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-3 py-3">
+                        <div>
+                            <div class="fw-semibold" th:text="${r.expense().merchant}">Merchant</div>
+                            <div class="small text-secondary">
+                                <span th:text="${#temporals.format(r.expense().expenseDate, 'dd MMM yyyy')}">date</span>
+                                · <span th:text="${r.expense().category.label}">cat</span>
+                                <span th:if="${r.expense().note}" th:text="' · ' + ${r.expense().note}"></span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="amount" th:text="${s + #numbers.formatDecimal(r.expense().amount, 1, 'COMMA', 2, 'POINT')}">₹0</div>
+                            <span class="ai-chip" th:text="${r.matchPercent()} + '% match'">90% match</span>
+                            <div th:if="${r.similarCount() > 0}" class="small text-secondary mt-1"
+                                 th:text="'+ ' + ${r.similarCount()} + ' similar'">+ 3 similar</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

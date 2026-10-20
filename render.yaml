@@ -8,6 +8,10 @@ services:
     envVars:
       - key: GEMINI_API_KEY
         sync: false
+      - key: GEMINI_CHAT_MODEL       # Flash-Lite: ~500 free requests/day per model
+        value: gemini-3.5-flash-lite
+      - key: GEMINI_FALLBACK_MODEL   # separate quota, used on 429/503
+        value: gemini-3.1-flash-lite
       - key: DATABASE_URL        # jdbc:postgresql://<neon-host>/neondb?sslmode=require  (direct host, pooling off)
         sync: false
       - key: DATABASE_USERNAME

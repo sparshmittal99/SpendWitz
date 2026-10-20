@@ -84,6 +84,8 @@ Run the tests (they start their own pgvector container and never call Gemini):
    | `DATABASE_URL` | `jdbc:postgresql://ep-xxx.aws.neon.tech/neondb?sslmode=require` |
    | `DATABASE_USERNAME` | `neondb_owner` |
    | `DATABASE_PASSWORD` | your password |
+   | `GEMINI_CHAT_MODEL` | `gemini-3.5-flash-lite` (preset by `render.yaml`) |
+   | `GEMINI_FALLBACK_MODEL` | `gemini-3.1-flash-lite` (preset; separate free quota, used on 429/503) |
 
 4. *(Optional)* Render's free tier sleeps after 15 minutes without traffic. A free [UptimeRobot](https://uptimerobot.com) monitor on `/actuator/health/liveness` every 5 minutes keeps it awake. That endpoint doesn't touch the database, so Neon can still scale to zero.
 

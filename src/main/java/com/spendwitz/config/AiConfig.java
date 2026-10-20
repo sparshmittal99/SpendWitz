@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.spendwitz.ai.CachingEmbeddingModel;
+import com.spendwitz.ai.ResilientChat;
 
 import io.micrometer.observation.ObservationRegistry;
 
@@ -48,6 +49,7 @@ public class AiConfig {
                         .apiKey(apiKey)
                         // ResilientChat picks the model per request from the list; the first is the default
                         .model(models.split(",")[0].trim())
+                        .extraBody(ResilientChat.GROQ_EXTRA_BODY)
                         .temperature(0.2)
                         // Fail fast so ResilientChat can hand the question to Gemini instead
                         .timeout(Duration.ofSeconds(30))

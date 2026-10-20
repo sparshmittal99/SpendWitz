@@ -2,6 +2,7 @@ package com.spendwitz.ai;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
@@ -27,6 +28,13 @@ import reactor.core.publisher.Flux;
 public class ResilientChat {
 
     private static final Logger log = LoggerFactory.getLogger(ResilientChat.class);
+
+    /**
+     * Sent with every Groq request. Reasoning models (gpt-oss) otherwise return their reasoning, Spring AI keeps it
+     * on the assistant message and sends it back as reasoning_content on the next call (a tool round or the next
+     * question), and Groq rejects that field with a 400.
+     */
+    public static final Map<String, Object> GROQ_EXTRA_BODY = Map.of("include_reasoning", false);
 
     private final ChatClient chatClient;
     private final ChatClient fastChatClient;
@@ -60,7 +68,8 @@ public class ResilientChat {
         }
         String model = fastModels.get(index);
         AtomicBoolean started = new AtomicBoolean();
-        return Flux.defer(() -> request.apply(fastChatClient.prompt().options(OpenAiChatOptions.builder().model(model))))
+        return Flux.defer(() -> request.apply(fastChatClient.prompt()
+                        .options(OpenAiChatOptions.builder().model(model).extraBody(GROQ_EXTRA_BODY))))
                 .doOnNext(chunk -> started.set(true))
                 .onErrorResume(e -> {
                     if (started.get()) {

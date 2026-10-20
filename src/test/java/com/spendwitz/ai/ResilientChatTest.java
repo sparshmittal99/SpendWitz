@@ -94,7 +94,13 @@ class ResilientChatTest {
         };
     }
 
+    /** Also checks every Groq request turns reasoning off, or follow-up calls fail with a 400. */
     private static boolean isModel(Object builder, String model) {
-        return builder instanceof OpenAiChatOptions.Builder b && model.equals(b.build().getModel());
+        if (!(builder instanceof OpenAiChatOptions.Builder b)) {
+            return false;
+        }
+        OpenAiChatOptions options = b.build();
+        return model.equals(options.getModel())
+                && Boolean.FALSE.equals(options.getExtraBody().get("include_reasoning"));
     }
 }

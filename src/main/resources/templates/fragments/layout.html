@@ -49,10 +49,26 @@
                 </ul>
                 <div class="d-flex align-items-center gap-2">
                     <span th:if="${currentUser.demo()}" class="badge text-bg-warning">Demo account</span>
-                    <span class="text-secondary small d-none d-xxl-inline" th:text="${currentUser.displayName()}">User</span>
-                    <form th:action="@{/logout}" method="post" class="m-0">
-                        <button class="btn btn-sm btn-outline-secondary" type="submit" aria-label="Log out" title="Log out"><i class="bi bi-box-arrow-right"></i><span class="d-xl-none d-xxl-inline"> Log out</span></button>
-                    </form>
+                    <div class="dropdown">
+                        <button class="btn p-0 border-0 avatar-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                aria-label="Account menu" title="Account">
+                            <span class="avatar avatar-sm" th:classappend="${active == 'account'} ? 'avatar-active'"
+                                  th:text="${#strings.toUpperCase(#strings.substring(currentUser.displayName(), 0, 1))}">D</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            <li class="px-3 py-2">
+                                <div class="fw-semibold" th:text="${currentUser.displayName()}">Demo User</div>
+                                <div class="small text-secondary" th:text="${currentUser.email()}">demo@spendwitz.app</div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/account"><i class="bi bi-person-gear"></i> Account</a></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post" class="m-0">
+                                    <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> Log out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </th:block>

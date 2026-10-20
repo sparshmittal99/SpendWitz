@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Account')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('account')}"></nav>
+
+<main class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+            <h2 class="page-title">Account</h2>
+
+            <div class="card p-4 mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="avatar" th:text="${#strings.substring(info.user().displayName, 0, 1).toUpperCase()}">D</div>
+                    <div>
+                        <div class="fw-bold fs-5" th:text="${info.user().displayName}">Demo User</div>
+                        <div class="text-secondary" th:text="${info.user().email}">demo@spendwitz.app</div>
+                    </div>
+                </div>
+                <hr>
+                <dl class="row mb-0 small">
+                    <dt class="col-5 text-secondary fw-normal">Member since</dt>
+                    <dd class="col-7" th:text="${#temporals.format(info.memberSince(), 'd MMMM yyyy')}">20 October 2026</dd>
+                    <dt class="col-5 text-secondary fw-normal">Currency</dt>
+                    <dd class="col-7" th:text="${info.user().currency}">INR</dd>
+                    <dt class="col-5 text-secondary fw-normal">Expenses recorded</dt>
+                    <dd class="col-7 mb-0" th:text="${info.expenseCount()}">120</dd>
+                </dl>
+            </div>
+
+            <div class="card danger-zone p-4">
+                <h5 class="fw-bold text-danger mb-1"><i class="bi bi-exclamation-octagon"></i> Delete account</h5>
+                <p class="text-secondary small mb-3">
+                    Permanently deletes your account and everything in it: all expenses and receipt items, budgets,
+                    cash wallet, AI insights and search data. This can't be undone.
+                </p>
+
+                <div th:if="${currentUser.demo()}" class="alert alert-warning small mb-0">
+                    This is the shared demo account, so it can't be deleted. Create your own account to try this.
+                </div>
+
+                <form th:unless="${currentUser.demo()}" th:action="@{/account/delete}" method="post"
+                      data-confirm-title="Delete your account?" data-confirm-ok="Delete account"
+                      th:data-confirm="${'All ' + info.expenseCount() + ' expenses and everything else in your account will be permanently deleted.'}">
+                    <label for="password" class="form-label small">Enter your password to confirm</label>
+                    <div class="d-flex flex-column flex-sm-row gap-2">
+                        <input type="password" id="password" name="password" class="form-control" required
+                               autocomplete="current-password">
+                        <button type="submit" class="btn btn-outline-danger text-nowrap"><i class="bi bi-trash3"></i> Delete account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

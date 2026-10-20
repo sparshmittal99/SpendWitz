@@ -1,5 +1,8 @@
 package com.spendwitz.assistant;
 
+import java.time.Duration;
+import java.util.concurrent.TimeoutException;
+
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -27,6 +30,8 @@ import reactor.core.publisher.Flux;
 public class AssistantController {
 
     private static final Logger log = LoggerFactory.getLogger(AssistantController.class);
+
+    private static final Duration ANSWER_TIMEOUT = Duration.ofSeconds(90);
 
     private final AssistantService assistant;
 
@@ -60,10 +65,17 @@ public class AssistantController {
             HttpSession session) {
         String conversationId = conversationId(user, session);
         return Flux.defer(() -> assistant.chat(user, conversationId, request.message().trim()))
+                // Max wait for the first piece of text (tool calls happen before it) and between later pieces
+                .timeout(ANSWER_TIMEOUT)
                 .map(ChatChunk::text)
                 .onErrorResume(e -> {
                     if (e instanceof QuotaExceededException) {
                         return Flux.just(ChatChunk.error(e.getMessage()));
+                    }
+                    if (e instanceof TimeoutException) {
+                        log.warn("Assistant request timed out after {}", ANSWER_TIMEOUT);
+                        return Flux.just(ChatChunk.error(
+                                "The AI is taking too long to answer. Please try again, or ask a simpler question."));
                     }
                     log.warn("Assistant request failed", e);
                     return Flux.just(ChatChunk.error(

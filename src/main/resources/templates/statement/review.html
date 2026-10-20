@@ -6,9 +6,16 @@
 
 <main class="container py-4" th:with="s=${currencySymbol}">
     <h2 class="page-title mb-1">Review your statement</h2>
-    <p class="text-secondary mb-3" th:if="${fileName != null}">
-        <i class="bi bi-file-earmark-text"></i> <span th:text="${fileName}">statement.pdf</span>
-    </p>
+    <div class="d-flex flex-wrap gap-2 mb-3" th:if="${fileNames != null}">
+        <span th:each="name : ${fileNames}" class="text-secondary small text-break">
+            <i class="bi bi-file-earmark-text"></i> <span th:text="${name}">statement.pdf</span>
+        </span>
+    </div>
+
+    <div th:if="${failures != null and !failures.isEmpty()}" class="alert alert-warning">
+        <div class="fw-semibold"><i class="bi bi-exclamation-triangle"></i> Couldn't read these, so they're not below:</div>
+        <ul class="mb-0 mt-1"><li th:each="f : ${failures}" th:text="${f}">statement.pdf: wrong password</li></ul>
+    </div>
 
     <div th:if="${preview != null}" class="d-flex flex-wrap gap-2 mb-3">
         <span class="cat-badge"><i class="bi bi-receipt text-primary"></i> <span th:text="${form.rows.size()} + ' outgoing transactions'">12 outgoing</span></span>

@@ -24,16 +24,17 @@
             <form id="importForm" class="card p-4" th:action="@{/import}" method="post" enctype="multipart/form-data">
                 <label for="file" class="dropzone" id="dropzone">
                     <i class="bi bi-bank"></i>
-                    <div class="fw-semibold mt-2">Drop your statement here, or click to choose</div>
-                    <div class="small text-secondary">PDF (downloaded from net banking), Excel (.xlsx / .xls) or CSV · up to 6 MB · one or two months</div>
-                    <div class="small fw-semibold text-primary mt-2" id="fileName"></div>
+                    <div class="fw-semibold mt-2">Drop your statements here, or click to choose</div>
+                    <div class="small text-secondary">Up to 4 at once, e.g. your bank account and credit card · PDF (from net banking), Excel (.xlsx / .xls) or CSV · up to 6 MB each</div>
                 </label>
-                <input type="file" id="file" name="file" class="d-none" required accept=".pdf,.xlsx,.xls,.csv">
+                <ul class="file-list" id="fileList"></ul>
+                <div class="small text-danger mt-2 d-none" id="fileError"></div>
+                <input type="file" id="file" name="file" class="d-none" required multiple accept=".pdf,.xlsx,.xls,.csv">
                 <div class="mt-3">
                     <label for="password" class="form-label">File password <span class="text-secondary small">(if the file is protected)</span></label>
                     <input type="password" id="password" name="password" class="form-control" autocomplete="off"
                            placeholder="Banks often use part of your name + date of birth">
-                    <div class="form-text">Used only to open the file once. It's never stored.</div>
+                    <div class="form-text">Used only to open the files once. It's never stored. With several files, it's tried on each protected one, so upload statements with different passwords separately.</div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-lg mt-3" id="importBtn" disabled>
                     <i class="bi bi-stars"></i> Read statement
@@ -67,25 +68,20 @@
 
 <div class="loading-overlay" id="loading" role="status" aria-live="polite">
     <div class="spinner-border text-primary" style="width:3rem;height:3rem" aria-hidden="true"></div>
-    <div class="fw-semibold">Reading your statement…</div>
-    <div class="small text-secondary">Finding transactions, cleaning up names and checking for duplicates. This can take 20–40 seconds.</div>
+    <div class="fw-semibold" id="loadingTitle">Reading your statement…</div>
+    <div class="small text-secondary">Finding transactions, cleaning up names and checking for duplicates. This can take 20–40 seconds per statement.</div>
 </div>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script src="/js/file-picker.js"></script>
 <script>
-    const fileInput = document.getElementById('file');
-    const dropzone = document.getElementById('dropzone');
-    const importBtn = document.getElementById('importBtn');
-    const showFile = () => {
-        const f = fileInput.files[0];
-        document.getElementById('fileName').textContent = f ? f.name : '';
-        importBtn.disabled = !f;
-    };
-    fileInput.addEventListener('change', showFile);
-    ['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('dragover'); }));
-    ['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('dragover'); }));
-    dropzone.addEventListener('drop', e => { fileInput.files = e.dataTransfer.files; showFile(); });
+    filePicker({ max: 4, maxBytes: 6 * 1024 * 1024, button: document.getElementById('importBtn'),
+        label: n => n > 1 ? `Read ${n} statements` : 'Read statement' });
+    document.getElementById('importForm').addEventListener('submit', () => {
+        const n = document.getElementById('file').files.length;
+        if (n > 1) document.getElementById('loadingTitle').textContent = `Reading ${n} statements…`;
+    });
 
     const showLoading = () => document.getElementById('loading').classList.add('show');
     document.getElementById('importForm').addEventListener('submit', showLoading);

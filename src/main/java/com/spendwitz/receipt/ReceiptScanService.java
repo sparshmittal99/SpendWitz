@@ -7,6 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +26,7 @@ import com.spendwitz.ai.ResilientChat;
 import com.spendwitz.common.AiUnavailableException;
 import com.spendwitz.common.Category;
 import com.spendwitz.common.PaymentMethod;
+import com.spendwitz.common.QuotaExceededException;
 import com.spendwitz.expense.ExpenseForm;
 import com.spendwitz.expense.ExpenseSource;
 import com.spendwitz.user.AuthUser;
@@ -29,6 +35,8 @@ import com.spendwitz.user.AuthUser;
 public class ReceiptScanService {
 
     private static final Logger log = LoggerFactory.getLogger(ReceiptScanService.class);
+
+    private static final int PARALLEL_SCANS = 3;
 
     public static final Set<String> SUPPORTED_TYPES = Set.of(
             "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "application/pdf");
@@ -70,6 +78,50 @@ public class ReceiptScanService {
 
     /** The scan result is a pre-filled form; nothing is saved until the user reviews and confirms it. */
     public record ScanResult(ExpenseForm form, String categoryReason) {
+    }
+
+    public record Upload(String fileName, byte[] bytes, String contentType) {
+    }
+
+    /** Bills that were read, in upload order, plus a message for each file that couldn't be read. */
+    public record BatchResult(List<ScanResult> results, List<String> failures) {
+    }
+
+    /** Scans several bills at once. A few run in parallel: quicker, but gentle on the free tier's per-minute limit. */
+    public BatchResult scanAll(AuthUser user, List<Upload> uploads) {
+        Semaphore permits = new Semaphore(PARALLEL_SCANS);
+        List<ScanResult> results = new ArrayList<>();
+        List<String> failures = new ArrayList<>();
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<ScanResult>> futures = uploads.stream()
+                    .map(u -> executor.submit(() -> {
+                        permits.acquire();
+                        try {
+                            return scan(user, u.bytes(), u.contentType());
+                        } finally {
+                            permits.release();
+                        }
+                    }))
+                    .toList();
+            for (int i = 0; i < futures.size(); i++) {
+                String name = uploads.get(i).fileName();
+                try {
+                    results.add(futures.get(i).get());
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    boolean expected = cause instanceof AiUnavailableException || cause instanceof QuotaExceededException
+                            || cause instanceof IllegalArgumentException;
+                    if (!expected) {
+                        log.warn("Scanning {} failed", name, cause);
+                    }
+                    failures.add(name + ": " + (expected ? cause.getMessage() : "couldn't read this file."));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    failures.add(name + ": scanning was interrupted.");
+                }
+            }
+        }
+        return new BatchResult(results, failures);
     }
 
     public ScanResult scan(AuthUser user, byte[] file, String contentType) {

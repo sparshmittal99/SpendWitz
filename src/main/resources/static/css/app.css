@@ -475,6 +475,44 @@ main { flex: 1; }
     opacity: 0.35;
 }
 
+/* ---------- Chosen files (upload pages) ---------- */
+.file-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.file-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--ss-border);
+    border-radius: 10px;
+    background: var(--ss-bg);
+    font-size: 0.9rem;
+}
+
+.file-list .bi:first-child {
+    color: var(--ss-primary);
+}
+
+.file-list .file-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.file-list .file-size {
+    color: var(--ss-muted);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
 /* ---------- Footer ---------- */
 .app-footer {
     position: relative;

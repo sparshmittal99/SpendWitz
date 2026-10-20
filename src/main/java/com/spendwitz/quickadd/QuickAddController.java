@@ -113,7 +113,9 @@ public class QuickAddController {
             expense.setExpenseDate(row.getExpenseDate() == null ? today : row.getExpenseDate());
             expense.setPaymentMethod(row.getPaymentMethod());
             expense.setNote(row.getNote());
-            expense.setSource(form.isVoice() ? ExpenseSource.VOICE : ExpenseSource.QUICK_ADD);
+            expense.setSource(row.getSource() == ExpenseSource.RECEIPT || row.getSource() == ExpenseSource.UPI_SCREENSHOT
+                    ? row.getSource()
+                    : form.isVoice() ? ExpenseSource.VOICE : ExpenseSource.QUICK_ADD);
             toSave.add(expense);
         }
         if (toSave.isEmpty() && errors.isEmpty()) {

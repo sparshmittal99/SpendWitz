@@ -6,9 +6,18 @@
 
 <main class="container py-4">
     <h2 class="page-title mb-1">Check and save</h2>
-    <p class="text-secondary">
+    <p class="text-secondary" th:if="${scannedBills == null}">
         AI found <strong th:text="${form.rows.size()}">3</strong> expense(s). Fix anything that's off and untick anything you don't want.
     </p>
+    <p class="text-secondary" th:if="${scannedBills != null}">
+        AI read <strong th:text="${form.rows.size()}">3</strong> of <span th:text="${scannedBills}">4</span> bills.
+        Fix anything that's off and untick anything you don't want.
+    </p>
+
+    <div th:if="${failures != null and !failures.isEmpty()}" class="alert alert-warning">
+        <div class="fw-semibold"><i class="bi bi-exclamation-triangle"></i> Couldn't read these, so add them again or by hand:</div>
+        <ul class="mb-0 mt-1"><li th:each="f : ${failures}" th:text="${f}">bill.jpg: blurry</li></ul>
+    </div>
 
     <div th:if="${originalText != null}" class="card ai-card p-3 mb-3">
         <div class="small text-secondary">You wrote</div>
@@ -41,7 +50,10 @@
                 </thead>
                 <tbody>
                 <tr th:each="row, st : *{rows}">
-                    <td><input type="checkbox" class="form-check-input" th:field="*{rows[__${st.index}__].include}" aria-label="Include this expense"></td>
+                    <td>
+                        <input type="checkbox" class="form-check-input" th:field="*{rows[__${st.index}__].include}" aria-label="Include this expense">
+                        <input type="hidden" th:field="*{rows[__${st.index}__].source}">
+                    </td>
                     <td><input type="text" class="form-control form-control-sm" th:field="*{rows[__${st.index}__].merchant}" maxlength="150" required></td>
                     <td>
                         <div class="input-group input-group-sm">
@@ -67,7 +79,7 @@
         </div>
         <div class="p-3 border-top d-flex flex-wrap gap-2 align-items-center">
             <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save ticked expenses</button>
-            <a href="/quick-add" class="btn btn-light">Start over</a>
+            <a th:href="${form.rows.?[source != null].isEmpty()} ? '/quick-add' : '/receipts/scan'" class="btn btn-light">Start over</a>
             <span class="ms-auto small text-secondary">Total: <strong class="amount" id="total"></strong></span>
         </div>
     </form>

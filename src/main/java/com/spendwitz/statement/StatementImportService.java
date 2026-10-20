@@ -22,8 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.spendwitz.cash.CashService;
 import com.spendwitz.cash.CashTopUp;
 import com.spendwitz.cash.CashTopUpRepository;
+import com.spendwitz.common.AiUnavailableException;
 import com.spendwitz.common.Category;
 import com.spendwitz.common.PaymentMethod;
+import com.spendwitz.common.QuotaExceededException;
 import com.spendwitz.expense.Expense;
 import com.spendwitz.expense.ExpenseForm;
 import com.spendwitz.expense.ExpenseRepository;
@@ -80,7 +82,69 @@ public class StatementImportService {
         this.topUps = topUps;
     }
 
-    public Preview preview(AuthUser user, String fileName, byte[] bytes, String password) {
+    public record Upload(String fileName, byte[] bytes) {
+    }
+
+    /** The combined preview, plus a message for each file that couldn't be read. */
+    public record Batch(Preview preview, List<String> failures) {
+    }
+
+    /**
+     * Reads one or more statements (different accounts, or several months) into one review table. With a single
+     * file its error is thrown as before; with several, a file that fails is reported and the rest still import.
+     */
+    public Batch previewAll(AuthUser user, List<Upload> uploads, String password) {
+        List<StatementImportForm.Row> rows = new ArrayList<>();
+        List<SkippedLine> skipped = new ArrayList<>();
+        List<String> failures = new ArrayList<>();
+        int credits = 0;
+        for (Upload upload : uploads) {
+            try {
+                Preview preview = read(user, upload.fileName(), upload.bytes(), password);
+                markRepeats(rows, preview.rows());
+                rows.addAll(preview.rows());
+                skipped.addAll(preview.skipped());
+                credits += preview.creditsIgnored();
+            } catch (StatementException | AiUnavailableException | QuotaExceededException e) {
+                if (uploads.size() == 1) {
+                    throw e;
+                }
+                failures.add(upload.fileName() + ": " + e.getMessage());
+            }
+        }
+        if (failures.size() == uploads.size()) {
+            throw new StatementException("None of the statements could be read. " + String.join(" ", failures));
+        }
+        if (rows.size() > MAX_TRANSACTIONS) {
+            throw new StatementException("Together these statements have " + rows.size() + " outgoing transactions. "
+                    + "Import at most " + MAX_TRANSACTIONS + " at a time.");
+        }
+        rows.sort(Comparator.comparing(StatementImportForm.Row::getExpenseDate));
+        markDuplicates(user.id(), rows.stream().filter(r -> r.getDuplicateOf() == null).toList());
+        return new Batch(new Preview(rows, skipped, credits), failures);
+    }
+
+    /**
+     * Overlapping statements (e.g. 1–31 Oct and 15 Oct–15 Nov of the same account) list the same transaction
+     * twice, with the same date, amount and bank narration. Each earlier row can match only one later row.
+     */
+    static void markRepeats(List<StatementImportForm.Row> earlier, List<StatementImportForm.Row> added) {
+        Map<String, Integer> available = new HashMap<>();
+        earlier.forEach(r -> available.merge(repeatKey(r), 1, Integer::sum));
+        for (StatementImportForm.Row row : added) {
+            String key = repeatKey(row);
+            if (available.getOrDefault(key, 0) > 0) {
+                available.merge(key, -1, Integer::sum);
+                markDuplicate(row, "Also in another statement you uploaded");
+            }
+        }
+    }
+
+    private static String repeatKey(StatementImportForm.Row row) {
+        return row.getExpenseDate() + "|" + row.getAmount().stripTrailingZeros().toPlainString() + "|" + row.getNote();
+    }
+
+    private Preview read(AuthUser user, String fileName, byte[] bytes, String password) {
         StatementReader.Content content = reader.read(fileName, bytes, password);
         List<StatementLine> debits = new ArrayList<>();
         int credits = switch (content) {
@@ -126,7 +190,6 @@ public class StatementImportService {
             }
             rows.add(toRow(line, e, kind.equals(StatementImportForm.ATM_WITHDRAWAL)));
         }
-        markDuplicates(user.id(), rows);
         return new Preview(rows, skipped, credits);
     }
 

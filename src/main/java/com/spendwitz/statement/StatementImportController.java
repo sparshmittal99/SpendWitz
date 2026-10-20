@@ -31,6 +31,7 @@ public class StatementImportController {
 
     private static final MediaType XLSX =
             MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    private static final int MAX_FILES = 4;
 
     private final StatementImportService importer;
     private final SampleStatementGenerator samples;
@@ -47,14 +48,23 @@ public class StatementImportController {
     }
 
     @PostMapping
-    public String upload(@AuthenticationPrincipal AuthUser user, @RequestParam("file") MultipartFile file,
+    public String upload(@AuthenticationPrincipal AuthUser user, @RequestParam("file") List<MultipartFile> files,
             @RequestParam(required = false) String password, Model model, RedirectAttributes redirect)
             throws IOException {
-        if (file.isEmpty()) {
+        List<MultipartFile> chosen = files.stream().filter(f -> !f.isEmpty()).toList();
+        if (chosen.isEmpty()) {
             redirect.addFlashAttribute("error", "Choose a statement file first.");
             return "redirect:/import";
         }
-        return preview(user, file.getOriginalFilename(), file.getBytes(), password, model, redirect);
+        if (chosen.size() > MAX_FILES) {
+            redirect.addFlashAttribute("error", "Choose up to " + MAX_FILES + " statements at a time.");
+            return "redirect:/import";
+        }
+        List<StatementImportService.Upload> uploads = new ArrayList<>();
+        for (MultipartFile f : chosen) {
+            uploads.add(new StatementImportService.Upload(f.getOriginalFilename(), f.getBytes()));
+        }
+        return preview(user, uploads, password, model, redirect);
     }
 
     @PostMapping("/sample")
@@ -62,8 +72,9 @@ public class StatementImportController {
             Model model, RedirectAttributes redirect) {
         boolean pdf = "pdf".equals(format);
         byte[] bytes = pdf ? samples.pdf(user) : samples.excel(user);
-        return preview(user, pdf ? "sample-statement.pdf" : "sample-statement.xlsx", bytes,
-                pdf ? SampleStatementGenerator.SAMPLE_PDF_PASSWORD : null, model, redirect);
+        var upload = new StatementImportService.Upload(pdf ? "sample-statement.pdf" : "sample-statement.xlsx", bytes);
+        return preview(user, List.of(upload), pdf ? SampleStatementGenerator.SAMPLE_PDF_PASSWORD : null, model,
+                redirect);
     }
 
     /** Lets visitors see exactly what the sample file looks like. */
@@ -81,15 +92,16 @@ public class StatementImportController {
                 .body(pdf ? samples.pdf(user) : samples.excel(user));
     }
 
-    private String preview(AuthUser user, String fileName, byte[] bytes, String password, Model model,
+    private String preview(AuthUser user, List<StatementImportService.Upload> uploads, String password, Model model,
             RedirectAttributes redirect) {
         try {
-            var preview = importer.preview(user, fileName, bytes, password);
+            var batch = importer.previewAll(user, uploads, password);
             StatementImportForm form = new StatementImportForm();
-            form.setRows(new ArrayList<>(preview.rows()));
+            form.setRows(new ArrayList<>(batch.preview().rows()));
             model.addAttribute("form", form);
-            model.addAttribute("preview", preview);
-            model.addAttribute("fileName", fileName);
+            model.addAttribute("preview", batch.preview());
+            model.addAttribute("fileNames", uploads.stream().map(StatementImportService.Upload::fileName).toList());
+            model.addAttribute("failures", batch.failures());
             return "statement/review";
         } catch (StatementException | QuotaExceededException | AiUnavailableException e) {
             redirect.addFlashAttribute("error", e.getMessage());

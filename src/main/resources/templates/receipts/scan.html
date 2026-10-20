@@ -12,16 +12,18 @@
             <p class="text-secondary">
                 Upload a photo of a bill, a PDF invoice, or a screenshot of a UPI payment (Google Pay, PhonePe, Paytm…).
                 Gemini reads the shop, date, amount and items, then you review before saving.
+                Got a pile of bills? Choose up to 8 at once and check them all in one table.
             </p>
 
             <form id="scanForm" class="card p-4" th:action="@{/receipts/scan}" method="post" enctype="multipart/form-data">
                 <label for="file" class="dropzone" id="dropzone">
                     <i class="bi bi-cloud-arrow-up"></i>
-                    <div class="fw-semibold mt-2">Drop a bill or UPI screenshot here, or click to choose</div>
-                    <div class="small text-secondary">JPG, PNG, WEBP, HEIC or PDF · up to 6 MB · on a phone you can take a photo</div>
-                    <div class="small fw-semibold text-primary mt-2" id="fileName"></div>
+                    <div class="fw-semibold mt-2">Drop bills or UPI screenshots here, or click to choose</div>
+                    <div class="small text-secondary">One or several (up to 8) · JPG, PNG, WEBP, HEIC or PDF · up to 6 MB each · on a phone you can take a photo</div>
                 </label>
-                <input type="file" id="file" name="file" class="d-none" required
+                <ul class="file-list" id="fileList"></ul>
+                <div class="small text-danger mt-2 d-none" id="fileError"></div>
+                <input type="file" id="file" name="file" class="d-none" required multiple
                        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf">
                 <button type="submit" class="btn btn-primary btn-lg mt-3" id="scanBtn" disabled>
                     <i class="bi bi-stars"></i> Extract with AI
@@ -49,25 +51,23 @@
 
 <div class="loading-overlay" id="loading" role="status" aria-live="polite">
     <div class="spinner-border text-primary" style="width:3rem;height:3rem" aria-hidden="true"></div>
-    <div class="fw-semibold">Reading your upload…</div>
-    <div class="small text-secondary">This usually takes 5–15 seconds.</div>
+    <div class="fw-semibold" id="loadingTitle">Reading your upload…</div>
+    <div class="small text-secondary" id="loadingHint">This usually takes 5–15 seconds.</div>
 </div>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script src="/js/file-picker.js"></script>
 <script>
-    const fileInput = document.getElementById('file');
-    const dropzone = document.getElementById('dropzone');
-    const scanBtn = document.getElementById('scanBtn');
-    const showFile = () => {
-        const f = fileInput.files[0];
-        document.getElementById('fileName').textContent = f ? f.name : '';
-        scanBtn.disabled = !f;
-    };
-    fileInput.addEventListener('change', showFile);
-    ['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('dragover'); }));
-    ['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('dragover'); }));
-    dropzone.addEventListener('drop', e => { fileInput.files = e.dataTransfer.files; showFile(); });
+    filePicker({ max: 8, maxBytes: 6 * 1024 * 1024, button: document.getElementById('scanBtn'),
+        label: n => n > 1 ? `Extract ${n} bills with AI` : 'Extract with AI' });
+    document.getElementById('scanForm').addEventListener('submit', () => {
+        const n = document.getElementById('file').files.length;
+        if (n > 1) {
+            document.getElementById('loadingTitle').textContent = `Reading ${n} bills…`;
+            document.getElementById('loadingHint').textContent = 'A few are read at a time. This can take up to a minute.';
+        }
+    });
 
     const showLoading = () => document.getElementById('loading').classList.add('show');
     document.getElementById('scanForm').addEventListener('submit', showLoading);

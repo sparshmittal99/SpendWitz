@@ -2,10 +2,13 @@ package com.spendwitz.statement;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -19,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.spendwitz.IntegrationTest;
@@ -110,6 +114,37 @@ class StatementImportTest extends IntegrationTest {
         assertThat(rows.get(3).getDuplicateOf()).isNull();
         assertThat(rows.get(0).isInclude()).isFalse();
         assertThat(rows.get(3).isInclude()).isTrue();
+    }
+
+    @Test
+    void flagsTransactionsRepeatedInOverlappingStatements() {
+        LocalDate day = LocalDate.of(2026, 10, 15);
+        List<StatementImportForm.Row> first = List.of(
+                row("Swiggy", "250.00", day, "UPI/DR/630100000001/SWIGGY"),
+                row("Chai", "20.00", day, "UPI/DR/630100000002/TEA STALL"));
+        List<StatementImportForm.Row> second = List.of(
+                row("Swiggy", "250", day, "UPI/DR/630100000001/SWIGGY"),          // same transaction again
+                row("Swiggy", "250", day, "UPI/DR/630100000001/SWIGGY"),          // only one earlier row to match
+                row("Chai", "20.00", day.plusDays(1), "UPI/DR/630100000002/TEA STALL"));
+
+        StatementImportService.markRepeats(first, second);
+
+        assertThat(second.get(0).getDuplicateOf()).contains("another statement");
+        assertThat(second.get(0).isInclude()).isFalse();
+        assertThat(second.get(1).getDuplicateOf()).isNull();
+        assertThat(second.get(2).getDuplicateOf()).isNull();
+    }
+
+    @Test
+    void severalStatementsThatAllFailShowEachReason() throws Exception {
+        var user = newUser();
+        byte[] lockedPdf = samples.pdf(user);
+        mvc.perform(multipart("/import").with(user(user)).with(csrf())
+                        .file(new MockMultipartFile("file", "october.pdf", "application/pdf", lockedPdf))
+                        .file(new MockMultipartFile("file", "november.pdf", "application/pdf", lockedPdf)))
+                .andExpect(redirectedUrl("/import"))
+                .andExpect(flash().attribute("error", containsString("october.pdf")))
+                .andExpect(flash().attribute("error", containsString("november.pdf")));
     }
 
     @Test

@@ -9,6 +9,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.spendwitz.common.Category;
 import com.spendwitz.common.PaymentMethod;
+import com.spendwitz.expense.ExpenseForm;
+import com.spendwitz.expense.ExpenseSource;
 
 /** The review table: one editable row per parsed expense, each with an "include" tick box. */
 public class QuickAddForm {
@@ -29,8 +31,23 @@ public class QuickAddForm {
 
         private PaymentMethod paymentMethod;
         private String note;
+        /** Set for rows read from a bill or UPI screenshot; otherwise the source comes from {@link #voice}. */
+        private ExpenseSource source;
 
         public Row() {
+        }
+
+        /** A row for one scanned bill, so several bills can be reviewed and saved together. */
+        public static Row fromScan(ExpenseForm scanned) {
+            Row row = new Row();
+            row.merchant = scanned.getMerchant();
+            row.amount = scanned.getAmount();
+            row.category = scanned.getCategory();
+            row.expenseDate = scanned.getExpenseDate();
+            row.paymentMethod = scanned.getPaymentMethod();
+            row.note = scanned.getNote();
+            row.source = scanned.getSource();
+            return row;
         }
 
         static Row from(QuickAddService.Draft draft) {
@@ -58,6 +75,8 @@ public class QuickAddForm {
         public void setPaymentMethod(PaymentMethod paymentMethod) { this.paymentMethod = paymentMethod; }
         public String getNote() { return note; }
         public void setNote(String note) { this.note = note; }
+        public ExpenseSource getSource() { return source; }
+        public void setSource(ExpenseSource source) { this.source = source; }
     }
 
     public boolean isVoice() { return voice; }

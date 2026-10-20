@@ -30,14 +30,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
-import com.spendwitz.ai.AiQuotaService;
 import com.spendwitz.ai.CategorySuggester;
 import com.spendwitz.ai.ResilientChat;
 import com.spendwitz.common.AiUnavailableException;
 import com.spendwitz.common.Category;
 import com.spendwitz.common.Money;
 import com.spendwitz.common.PaymentMethod;
-import com.spendwitz.common.QuotaExceededException;
 import com.spendwitz.expense.BillReference;
 import com.spendwitz.expense.Expense;
 import com.spendwitz.expense.ExpenseForm;
@@ -81,15 +79,13 @@ public class ReceiptScanService {
               and subtotal lines. Usually empty for UPI screenshots.""";
 
     private final ResilientChat chat;
-    private final AiQuotaService quota;
     private final CategorySuggester categorySuggester;
     private final ExpenseRepository expenses;
     private final Clock clock;
 
-    public ReceiptScanService(ResilientChat chat, AiQuotaService quota, CategorySuggester categorySuggester,
+    public ReceiptScanService(ResilientChat chat, CategorySuggester categorySuggester,
             ExpenseRepository expenses, Clock clock) {
         this.chat = chat;
-        this.quota = quota;
         this.categorySuggester = categorySuggester;
         this.expenses = expenses;
         this.clock = clock;
@@ -146,7 +142,7 @@ public class ReceiptScanService {
                     results.add(futures.get(i).get());
                 } catch (ExecutionException e) {
                     Throwable cause = e.getCause();
-                    boolean expected = cause instanceof AiUnavailableException || cause instanceof QuotaExceededException
+                    boolean expected = cause instanceof AiUnavailableException
                             || cause instanceof IllegalArgumentException;
                     if (!expected) {
                         log.warn("Scanning {} failed", name, cause);
@@ -208,7 +204,6 @@ public class ReceiptScanService {
         if (!SUPPORTED_TYPES.contains(mimeType.getType() + "/" + mimeType.getSubtype())) {
             throw new IllegalArgumentException("Upload a JPG, PNG, WEBP, HEIC image or a PDF.");
         }
-        quota.consume(user);
 
         LocalDate today = LocalDate.now(clock);
         ReceiptData data;

@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.spendwitz.ai.AiQuotaService;
 import com.spendwitz.ai.CategorySuggester;
 import com.spendwitz.ai.ResilientChat;
 import com.spendwitz.common.AiUnavailableException;
@@ -78,19 +77,16 @@ public class QuickAddService {
     }
 
     private final ResilientChat chat;
-    private final AiQuotaService quota;
     private final CategorySuggester categorySuggester;
     private final Clock clock;
 
-    public QuickAddService(ResilientChat chat, AiQuotaService quota, CategorySuggester categorySuggester, Clock clock) {
+    public QuickAddService(ResilientChat chat, CategorySuggester categorySuggester, Clock clock) {
         this.chat = chat;
-        this.quota = quota;
         this.categorySuggester = categorySuggester;
         this.clock = clock;
     }
 
     public Result parse(AuthUser user, String text, PaymentMethod defaultPaymentMethod) {
-        quota.consume(user);
         LocalDate today = LocalDate.now(clock);
         ParsedText parsed;
         try {

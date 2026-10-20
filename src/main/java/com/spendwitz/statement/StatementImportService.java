@@ -25,7 +25,6 @@ import com.spendwitz.cash.CashTopUpRepository;
 import com.spendwitz.common.AiUnavailableException;
 import com.spendwitz.common.Category;
 import com.spendwitz.common.PaymentMethod;
-import com.spendwitz.common.QuotaExceededException;
 import com.spendwitz.expense.Expense;
 import com.spendwitz.expense.ExpenseForm;
 import com.spendwitz.expense.ExpenseRepository;
@@ -105,7 +104,7 @@ public class StatementImportService {
                 rows.addAll(preview.rows());
                 skipped.addAll(preview.skipped());
                 credits += preview.creditsIgnored();
-            } catch (StatementException | AiUnavailableException | QuotaExceededException e) {
+            } catch (StatementException | AiUnavailableException e) {
                 if (uploads.size() == 1) {
                     throw e;
                 }

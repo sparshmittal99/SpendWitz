@@ -9,7 +9,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import com.spendwitz.IntegrationTest;
 
-/** With a Groq key the app starts with a second, fast chat client, and Gemini stays the default one. */
+/** With just a Groq key the app starts with a second, fast chat client, and Gemini stays the default one. */
 @TestPropertySource(properties = "spendwitz.ai.groq.api-key=test-key")
 class GroqConfigTest extends IntegrationTest {
 
@@ -17,7 +17,7 @@ class GroqConfigTest extends IntegrationTest {
     ApplicationContext context;
 
     @Test
-    void createsTheFastChatClientOnlyWhenAKeyIsSet() {
+    void createsTheFastChatClientWhenAKeyIsSet() {
         assertThat(context.containsBean("fastChatClient")).isTrue();
         assertThat(context.containsBean("chatClient")).isTrue();
         assertThat(context.getBean(ResilientChat.class)).isNotNull();

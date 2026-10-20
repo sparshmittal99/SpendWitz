@@ -15,9 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.spendwitz.ai.AiQuotaService;
 import com.spendwitz.ai.ExpenseIndexer;
-import com.spendwitz.common.QuotaExceededException;
 import com.spendwitz.expense.Expense;
 import com.spendwitz.expense.ExpenseRepository;
 import com.spendwitz.user.AuthUser;
@@ -31,12 +29,10 @@ public class SearchController {
 
     private final ExpenseIndexer indexer;
     private final ExpenseRepository expenses;
-    private final AiQuotaService quota;
 
-    public SearchController(ExpenseIndexer indexer, ExpenseRepository expenses, AiQuotaService quota) {
+    public SearchController(ExpenseIndexer indexer, ExpenseRepository expenses) {
         this.indexer = indexer;
         this.expenses = expenses;
-        this.quota = quota;
     }
 
     /** The most recent expense of a group of look-alikes, plus how many others are like it. */
@@ -55,7 +51,6 @@ public class SearchController {
             return "search";
         }
         try {
-            quota.consume(user);
             var groups = indexer.searchGrouped(user.id(), q.trim(), 10, MIN_SIMILARITY);
             Map<Long, Expense> byId = expenses
                     .findByIdInAndUserId(groups.stream().flatMap(g -> g.expenseIds().stream()).toList(), user.id())
@@ -71,8 +66,6 @@ public class SearchController {
                     .filter(Objects::nonNull)
                     .toList();
             model.addAttribute("results", results);
-        } catch (QuotaExceededException e) {
-            model.addAttribute("error", e.getMessage());
         } catch (Exception e) {
             log.warn("Semantic search failed", e);
             model.addAttribute("error", "Search is unavailable right now. Try again in a minute.");

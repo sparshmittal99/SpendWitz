@@ -11,14 +11,13 @@ import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 
-import com.spendwitz.ai.AiQuotaService;
 import com.spendwitz.ai.ResilientChat;
 import com.spendwitz.common.AiUnavailableException;
 import com.spendwitz.common.Category;
 import com.spendwitz.common.PaymentMethod;
 import com.spendwitz.user.AuthUser;
 
-/** The three model calls behind statement import. Every call counts against the user's daily AI quota. */
+/** The three model calls behind statement import. */
 @Service
 class StatementAi {
 
@@ -96,11 +95,9 @@ class StatementAi {
     }
 
     private final ResilientChat chat;
-    private final AiQuotaService quota;
 
-    StatementAi(ResilientChat chat, AiQuotaService quota) {
+    StatementAi(ResilientChat chat) {
         this.chat = chat;
-        this.quota = quota;
     }
 
     TableExtractor.ColumnMapping mapColumns(AuthUser user, List<List<String>> rows) {
@@ -109,7 +106,6 @@ class StatementAi {
                         .mapToObj(c -> "[" + c + "] " + truncate(rows.get(r).get(c), 40))
                         .collect(Collectors.joining(" | ")))
                 .collect(Collectors.joining("\n"));
-        quota.consume(user);
         return call("map the statement columns", () -> chat.call(prompt -> prompt
                 .system(SYSTEM_PROMPT)
                 .user(u -> u.text(MAPPING_PROMPT).param("rows", preview))
@@ -118,7 +114,6 @@ class StatementAi {
     }
 
     List<PdfTransaction> extractFromText(AuthUser user, String pageText) {
-        quota.consume(user);
         PdfTransactions result = call("read the PDF", () -> chat.call(prompt -> prompt
                 .system(SYSTEM_PROMPT)
                 .user(u -> u.text(PDF_PROMPT + "\n\n<<<\n{text}\n>>>").param("text", pageText))
@@ -129,7 +124,6 @@ class StatementAi {
 
     /** For scanned PDFs without a text layer: the vision model reads the pages. */
     List<PdfTransaction> extractFromScannedPdf(AuthUser user, byte[] pdf) {
-        quota.consume(user);
         PdfTransactions result = call("read the scanned PDF", () -> chat.call(prompt -> prompt
                 .system(SYSTEM_PROMPT)
                 .user(u -> u.text(PDF_PROMPT)
@@ -144,7 +138,6 @@ class StatementAi {
                 .mapToObj(i -> (firstIndex + i) + " | " + lines.get(i).date() + " | "
                         + lines.get(i).amount().toPlainString() + " | " + truncate(lines.get(i).description(), 160))
                 .collect(Collectors.joining("\n"));
-        quota.consume(user);
         Enrichments result = call("categorise the transactions", () -> chat.call(prompt -> prompt
                 .system(SYSTEM_PROMPT)
                 .user(u -> u.text(ENRICH_PROMPT)

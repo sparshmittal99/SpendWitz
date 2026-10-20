@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.spendwitz.common.QuotaExceededException;
 import com.spendwitz.user.AuthUser;
 
 import reactor.core.publisher.Flux;
@@ -69,9 +68,6 @@ public class AssistantController {
                 .timeout(ANSWER_TIMEOUT)
                 .map(ChatChunk::text)
                 .onErrorResume(e -> {
-                    if (e instanceof QuotaExceededException) {
-                        return Flux.just(ChatChunk.error(e.getMessage()));
-                    }
                     if (e instanceof TimeoutException) {
                         log.warn("Assistant request timed out after {}", ANSWER_TIMEOUT);
                         return Flux.just(ChatChunk.error(

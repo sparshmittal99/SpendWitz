@@ -29,7 +29,7 @@ Built for how people in India actually pay: bills, UPI and cash. Say *"sabzi 150
 flowchart LR
     B[Browser<br/>Thymeleaf + Bootstrap] --> C[Spring MVC controllers]
     C --> S[Services]
-    S --> R[(PostgreSQL<br/>expenses, budgets, quotas)]
+    S --> R[(PostgreSQL<br/>expenses, budgets, cash)]
     S --> V[(pgvector<br/>expense embeddings)]
     S --> RC[ResilientChat]
     RC -->|structured output, vision,<br/>tool calling, streaming| G[Gemini API]
@@ -45,7 +45,7 @@ flowchart LR
 - **Designed for Indian spending habits.** Most small purchases come without a bill, so bills are just one of four ways in (text, voice, bill/UPI scan, one-tap cash). Voice uses the browser's free speech recognition; only the transcript goes to the LLM.
 - **The LLM never decides money amounts when the file already has them.** For statement spreadsheets the model only maps columns; amounts and dates are parsed in Java. For PDFs every model-extracted amount is checked against the page text, and unconfirmed ones are flagged for the user.
 - **Structured output with defensive parsing.** Receipt data is parsed into a Java record. Dates and categories come back as strings and are validated in Java, so a slightly-off model answer degrades gracefully instead of failing the scan.
-- **Free-tier protection.** Every AI call goes through `AiQuotaService`, which enforces per-user and app-wide daily caps. The counters are stored in Postgres with an atomic `INSERT ... ON CONFLICT ... RETURNING`, so they survive restarts and work across instances.
+- **Optional fast chat.** When `GROQ_API_KEY` is set, the assistant answers through Groq for much faster replies; if Groq fails before any text is sent, the same question goes to Gemini. A 90-second limit means a stuck answer ends with a clear message instead of endless typing dots.
 - **Graceful degradation.** If Gemini returns 503 (overloaded) or 429 (rate-limited), `ResilientChat` retries once on a lighter model. Streaming only falls back if no text has been sent yet.
 - **Embeddings are kept off the critical path.** Saving an expense publishes an event; indexing runs `@Async` after the transaction commits (`@TransactionalEventListener`). A slow or failing embedding call never blocks or rolls back a save. Bulk indexing paces itself to stay under the free-tier per-minute limit.
 - **Hybrid category learning.** A deterministic database lookup (same merchant) runs before vector similarity, which runs before the LLM. This is cheap, predictable and explainable: the UI tells you *why* a category was chosen.
@@ -86,6 +86,8 @@ Run the tests (they start their own pgvector container and never call Gemini):
    | `DATABASE_PASSWORD` | your password |
    | `GEMINI_CHAT_MODEL` | `gemini-3.5-flash-lite` (preset by `render.yaml`) |
    | `GEMINI_FALLBACK_MODEL` | `gemini-3.1-flash-lite` (preset; separate free quota, used on 429/503) |
+   | `GROQ_API_KEY` | optional: fast assistant chat via Groq |
+   | `GROQ_MODEL` | optional: overrides the default `llama-3.3-70b-versatile` (must support tool use) |
 
 4. *(Optional)* Render's free tier sleeps after 15 minutes without traffic. A free [UptimeRobot](https://uptimerobot.com) monitor on `/actuator/health/liveness` every 5 minutes keeps it awake. That endpoint doesn't touch the database, so Neon can still scale to zero.
 
@@ -95,7 +97,7 @@ The demo account is created on first start and reset every night at 03:00 IST.
 
 ```
 src/main/java/com/spendwitz
-├── ai/          AiQuotaService, ExpenseIndexer (pgvector), CategorySuggester, ResilientChat
+├── ai/          ExpenseIndexer (pgvector), CategorySuggester, ResilientChat
 ├── assistant/   ExpenseTools (LLM tools), AssistantService (streaming agent), controller
 ├── receipt/     ReceiptScanService (bills + UPI screenshots: vision + structured output)
 ├── quickadd/    QuickAddService (text / voice, Hinglish → expenses), review-and-save flow

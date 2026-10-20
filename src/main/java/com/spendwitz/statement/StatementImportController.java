@@ -22,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.spendwitz.common.AiUnavailableException;
-import com.spendwitz.common.QuotaExceededException;
 import com.spendwitz.user.AuthUser;
 
 @Controller
@@ -103,7 +102,7 @@ public class StatementImportController {
             model.addAttribute("fileNames", uploads.stream().map(StatementImportService.Upload::fileName).toList());
             model.addAttribute("failures", batch.failures());
             return "statement/review";
-        } catch (StatementException | QuotaExceededException | AiUnavailableException e) {
+        } catch (StatementException | AiUnavailableException e) {
             redirect.addFlashAttribute("error", e.getMessage());
             return "redirect:/import";
         }

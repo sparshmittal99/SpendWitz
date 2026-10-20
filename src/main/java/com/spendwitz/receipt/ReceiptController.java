@@ -18,7 +18,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.spendwitz.common.AiUnavailableException;
 import com.spendwitz.common.PaymentMethod;
-import com.spendwitz.common.QuotaExceededException;
 import com.spendwitz.quickadd.QuickAddForm;
 import com.spendwitz.user.AuthUser;
 
@@ -101,7 +100,7 @@ public class ReceiptController {
                         "data:" + contentType + ";base64," + Base64.getEncoder().encodeToString(bytes));
             }
             return "expenses/form";
-        } catch (QuotaExceededException | AiUnavailableException | IllegalArgumentException e) {
+        } catch (AiUnavailableException | IllegalArgumentException e) {
             redirect.addFlashAttribute("error", e.getMessage());
             return "redirect:/receipts/scan";
         }

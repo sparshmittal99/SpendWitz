@@ -17,7 +17,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -44,9 +43,6 @@ class AccountDeletionTest extends IntegrationTest {
     CashTopUpRepository topUps;
 
     @Autowired
-    JdbcTemplate jdbc;
-
-    @Autowired
     Clock clock;
 
     private AuthUser userWithPassword(String password, boolean demo) {
@@ -62,7 +58,6 @@ class AccountDeletionTest extends IntegrationTest {
         addExpense(user, "Swiggy", "320.00", Category.FOOD_DINING, today);
         budgets.save(new Budget(user.id(), Category.FOOD_DINING, new BigDecimal("5000")));
         topUps.save(new CashTopUp(user.id(), new BigDecimal("2000"), today, "ATM"));
-        jdbc.update("insert into ai_usage (user_id, usage_date, request_count) values (?, ?, 3)", user.id(), today);
 
         mvc.perform(post("/account/delete").with(user(user)).with(csrf()).param("password", "correct-horse"))
                 .andExpect(redirectedUrl("/login?deleted"));
@@ -71,7 +66,6 @@ class AccountDeletionTest extends IntegrationTest {
         assertThat(expenses.countByUserId(user.id())).isZero();
         assertThat(budgets.findByUserIdOrderByCategory(user.id())).isEmpty();
         assertThat(topUps.totalForUser(user.id())).isEqualByComparingTo("0");
-        assertThat(jdbc.queryForObject("select count(*) from ai_usage where user_id = ?", Long.class, user.id())).isZero();
     }
 
     @Test

@@ -3,7 +3,6 @@ package com.spendwitz.user;
 import java.time.Clock;
 import java.time.LocalDate;
 
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,16 +17,14 @@ public class AccountService {
     private final ExpenseRepository expenses;
     private final ExpenseIndexer indexer;
     private final PasswordEncoder passwordEncoder;
-    private final JdbcTemplate jdbc;
     private final Clock clock;
 
     public AccountService(AppUserRepository users, ExpenseRepository expenses, ExpenseIndexer indexer,
-            PasswordEncoder passwordEncoder, JdbcTemplate jdbc, Clock clock) {
+            PasswordEncoder passwordEncoder, Clock clock) {
         this.users = users;
         this.expenses = expenses;
         this.indexer = indexer;
         this.passwordEncoder = passwordEncoder;
-        this.jdbc = jdbc;
         this.clock = clock;
     }
 
@@ -56,7 +53,6 @@ public class AccountService {
             throw new AccountException("That password is incorrect, so your account was not deleted.");
         }
         indexer.removeAllForUser(user.id());
-        jdbc.update("delete from ai_usage where user_id = ?", user.id());
         users.delete(account);
     }
 

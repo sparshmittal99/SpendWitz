@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.spendwitz.common.AiUnavailableException;
-import com.spendwitz.common.QuotaExceededException;
 import com.spendwitz.user.AuthUser;
 
 @Controller
@@ -32,7 +31,7 @@ public class DashboardController {
     public String generateInsights(@AuthenticationPrincipal AuthUser user, RedirectAttributes redirect) {
         try {
             insights.generate(user);
-        } catch (QuotaExceededException | AiUnavailableException e) {
+        } catch (AiUnavailableException e) {
             redirect.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/dashboard";

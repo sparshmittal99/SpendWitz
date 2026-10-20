@@ -15,7 +15,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.spendwitz.ai.AiQuotaService;
 import com.spendwitz.ai.ResilientChat;
 import com.spendwitz.budget.BudgetService;
 import com.spendwitz.common.AiUnavailableException;
@@ -46,16 +45,14 @@ public class InsightService {
     }
 
     private final ResilientChat chat;
-    private final AiQuotaService quota;
     private final ExpenseRepository expenses;
     private final BudgetService budgets;
     private final MonthlyInsightRepository repository;
     private final Clock clock;
 
-    public InsightService(ResilientChat chat, AiQuotaService quota, ExpenseRepository expenses,
+    public InsightService(ResilientChat chat, ExpenseRepository expenses,
             BudgetService budgets, MonthlyInsightRepository repository, Clock clock) {
         this.chat = chat;
-        this.quota = quota;
         this.expenses = expenses;
         this.budgets = budgets;
         this.repository = repository;
@@ -70,7 +67,6 @@ public class InsightService {
             throw new AiUnavailableException("Add a few expenses this month first, then generate insights.");
         }
         String facts = facts(user, today);
-        quota.consume(user);
 
         Insights result;
         try {

@@ -9,7 +9,6 @@ import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
 
-import com.spendwitz.ai.AiQuotaService;
 import com.spendwitz.ai.ExpenseIndexer;
 import com.spendwitz.ai.ResilientChat;
 import com.spendwitz.budget.BudgetService;
@@ -47,19 +46,17 @@ public class AssistantService {
     private final ResilientChat chat;
     private final MessageChatMemoryAdvisor memoryAdvisor;
     private final ChatMemory chatMemory;
-    private final AiQuotaService quota;
     private final ExpenseRepository expenses;
     private final ExpenseStats stats;
     private final BudgetService budgets;
     private final ExpenseIndexer indexer;
     private final Clock clock;
 
-    public AssistantService(ResilientChat chat, ChatMemory chatMemory, AiQuotaService quota,
-            ExpenseRepository expenses, ExpenseStats stats, BudgetService budgets, ExpenseIndexer indexer, Clock clock) {
+    public AssistantService(ResilientChat chat, ChatMemory chatMemory, ExpenseRepository expenses,
+            ExpenseStats stats, BudgetService budgets, ExpenseIndexer indexer, Clock clock) {
         this.chat = chat;
         this.chatMemory = chatMemory;
         this.memoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();
-        this.quota = quota;
         this.expenses = expenses;
         this.stats = stats;
         this.budgets = budgets;
@@ -69,7 +66,6 @@ public class AssistantService {
 
     /** Streams the answer token by token. The model may call {@link ExpenseTools} several times before answering. */
     public Flux<String> chat(AuthUser user, String conversationId, String message) {
-        quota.consume(user);
         LocalDate today = LocalDate.now(clock);
         return chat.streamPreferFast(prompt -> prompt
                 .system(s -> s.text(SYSTEM_PROMPT)

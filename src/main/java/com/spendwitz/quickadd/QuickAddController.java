@@ -18,7 +18,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.spendwitz.common.AiUnavailableException;
 import com.spendwitz.common.PaymentMethod;
-import com.spendwitz.common.QuotaExceededException;
 import com.spendwitz.expense.ExpenseForm;
 import com.spendwitz.expense.ExpenseService;
 import com.spendwitz.expense.ExpenseSource;
@@ -75,7 +74,7 @@ public class QuickAddController {
             model.addAttribute("originalText", text.trim());
             model.addAttribute("methods", PaymentMethod.values());
             return "quickadd/review";
-        } catch (QuotaExceededException | AiUnavailableException e) {
+        } catch (AiUnavailableException e) {
             redirect.addFlashAttribute("error", e.getMessage());
             return "redirect:/quick-add?method=" + method;
         }

@@ -60,7 +60,7 @@
             <table class="table table-hover align-middle mb-0">
                 <thead>
                 <tr>
-                    <th>Date</th>
+                    <th class="d-none d-md-table-cell">Date</th>
                     <th>Merchant</th>
                     <th class="d-none d-md-table-cell">Category</th>
                     <th class="text-end">Amount</th>
@@ -69,7 +69,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="e : ${page.content}">
-                    <td class="text-nowrap" th:text="${#temporals.format(e.expenseDate, 'dd MMM yyyy')}">01 Oct 2026</td>
+                    <td class="text-nowrap d-none d-md-table-cell" th:text="${#temporals.format(e.expenseDate, 'dd MMM yyyy')}">01 Oct 2026</td>
                     <td>
                         <div class="fw-semibold">
                             <span th:text="${e.merchant}">Merchant</span>
@@ -78,7 +78,10 @@
                             <i th:if="${e.source.name() == 'STATEMENT'}" class="bi bi-bank text-primary ms-1" title="Imported from bank statement"></i>
                         </div>
                         <div class="small text-secondary" th:if="${e.note}" th:text="${e.note}">note</div>
-                        <div class="d-md-none mt-1"><span class="cat-badge" th:text="${e.category.label}">Food</span></div>
+                        <div class="d-md-none mt-1 d-flex flex-wrap align-items-center gap-2">
+                            <span class="small text-secondary" th:text="${#temporals.format(e.expenseDate, 'dd MMM')}">01 Oct</span>
+                            <span class="cat-badge" th:text="${e.category.label}">Food</span>
+                        </div>
                     </td>
                     <td class="d-none d-md-table-cell">
                         <span class="cat-badge"><i th:class="'bi ' + ${e.category.icon}" th:style="'color:' + ${e.category.color}"></i><span th:text="${e.category.label}">Food</span></span>

@@ -151,7 +151,7 @@
                                     <span th:if="${e.note}" th:text="' · ' + ${e.note}"></span>
                                 </div>
                             </td>
-                            <td><span class="cat-badge"><i th:class="'bi ' + ${e.category.icon}" th:style="'color:' + ${e.category.color}"></i><span th:text="${e.category.label}">Food</span></span></td>
+                            <td><span class="cat-badge" th:title="${e.category.label}"><i th:class="'bi ' + ${e.category.icon}" th:style="'color:' + ${e.category.color}"></i><span class="d-none d-sm-inline" th:text="${e.category.label}">Food</span></span></td>
                             <td class="text-end amount" th:text="${s + #numbers.formatDecimal(e.amount, 1, 'COMMA', 0, 'POINT')}">₹20</td>
                             <td class="text-end"><a th:href="@{/expenses/{id}/edit(id=${e.id})}" class="btn btn-sm btn-light" aria-label="Edit"><i class="bi bi-pencil"></i></a></td>
                         </tr>

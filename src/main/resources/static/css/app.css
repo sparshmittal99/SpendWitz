@@ -477,15 +477,100 @@ main { flex: 1; }
 
 /* ---------- Footer ---------- */
 .app-footer {
-    border-top: 1px solid var(--ss-border);
-    padding: 1.25rem 0;
+    position: relative;
+    padding: 2rem 0 1.25rem;
     color: var(--ss-muted);
     font-size: 0.85rem;
     margin-top: 3rem;
     background: #fff;
 }
 
+/* Thin brand-gradient line along the top edge */
+.app-footer::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--ss-primary), #7c3aed 50%, var(--ss-accent));
+}
+
+.footer-notice {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    padding: 1rem 1.15rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    border: 1px solid #fde68a;
+    color: #78350f;
+}
+
+.footer-notice-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #f59e0b;
+    color: #fff;
+    font-size: 1.15rem;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+}
+
+.footer-notice-title {
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #b45309;
+    margin-bottom: 0.2rem;
+}
+
+.footer-notice-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.footer-notice-list li {
+    display: flex;
+    line-height: 1.5;
+}
+
+.footer-notice-list .bi-dot {
+    margin-left: -0.35rem;
+    font-size: 1.1rem;
+    line-height: 1.3;
+}
+
+.footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--ss-border);
+}
+
+.footer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 700;
+    color: var(--ss-text);
+}
+
 @media (max-width: 576px) {
+    /* Dashboard shortcuts become three equal app-style tiles */
+    .quick-actions { display: grid !important; grid-template-columns: repeat(3, 1fr); width: 100%; }
+    .quick-actions .btn {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem;
+        padding: 0.55rem 0.25rem; font-size: 0.8rem; line-height: 1.2;
+    }
+    .quick-actions .btn .bi { font-size: 1.15rem; }
     .kpi-value { font-size: 1.4rem; }
     .msg { max-width: 95%; }
     .table > :not(caption) > * > * { padding: 0.6rem 0.5rem; }

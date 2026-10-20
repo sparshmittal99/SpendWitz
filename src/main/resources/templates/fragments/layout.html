@@ -91,8 +91,24 @@
 </div>
 
 <footer th:fragment="footer" class="app-footer">
-    <div class="container d-flex justify-content-center">
-        <span>Never enter your financial data</span>
+    <div class="container">
+        <div class="footer-notice">
+            <div class="footer-notice-icon"><i class="bi bi-shield-lock"></i></div>
+            <div>
+                <div class="footer-notice-title">Important</div>
+                <ul class="footer-notice-list">
+                    <li><i class="bi bi-dot"></i>Never enter your real financial data, card numbers or bank passwords.</li>
+                    <li><i class="bi bi-dot"></i>AI can make mistakes. Check amounts and categories before saving.</li>
+                    <li><i class="bi bi-dot"></i>Insights are for information only, not financial advice.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span class="footer-brand">
+                <img src="/img/logo.svg" width="20" height="20" alt=""> SpendWitz
+            </span>
+            <span>&copy; <span th:text="${#temporals.year(#temporals.createNow())}">2026</span> SpendWitz</span>
+        </div>
     </div>
 </footer>
 

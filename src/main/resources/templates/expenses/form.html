@@ -17,7 +17,7 @@
 
     <div class="row g-4">
         <div class="col-lg-5" th:if="${receiptPreview != null}">
-            <div class="card p-3 sticky-lg-top" style="top:80px">
+            <div class="card p-3 sticky-lg-top" style="top:5rem">
                 <img th:src="${receiptPreview}" class="receipt-preview" alt="Uploaded receipt">
             </div>
         </div>
@@ -92,7 +92,7 @@
                     </div>
                     <div class="table-responsive">
                         <table class="table table-sm align-middle mb-0">
-                            <thead><tr><th>Name</th><th style="width:90px">Qty</th><th style="width:130px">Price</th><th style="width:40px"></th></tr></thead>
+                            <thead><tr><th>Name</th><th style="width:5.5rem">Qty</th><th style="width:8rem">Price</th><th style="width:2.5rem"></th></tr></thead>
                             <tbody id="items">
                             <tr th:each="item, st : *{items}" class="item-row">
                                 <td><input type="text" class="form-control form-control-sm" data-field="name" th:field="*{items[__${st.index}__].name}" maxlength="200"></td>

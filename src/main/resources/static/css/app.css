@@ -24,6 +24,23 @@ body {
 
 main { flex: 1; }
 
+/* ---------- Responsive shell ---------- */
+/* Use the full screen width on tablets, laptops and big monitors instead of
+   Bootstrap's fixed 1320px column; gutters grow with the screen. */
+.container {
+    max-width: 2400px;
+    padding-inline: clamp(1rem, 3vw, 3rem);
+}
+
+/* Scale text and spacing up on large displays so nothing looks tiny */
+@media (min-width: 1600px) { html { font-size: 17px; } }
+@media (min-width: 1920px) { html { font-size: 18px; } }
+@media (min-width: 2560px) { html { font-size: 20px; } }
+
+/* Dashboard charts grow with the screen */
+.chart-sm { height: clamp(220px, 16vw, 380px); }
+.chart-lg { height: clamp(280px, 22vw, 520px); }
+
 .btn-primary {
     --bs-btn-bg: var(--ss-primary);
     --bs-btn-border-color: var(--ss-primary);
@@ -67,8 +84,8 @@ main { flex: 1; }
 .nav-menu-btn {
     display: inline-grid;
     place-items: center;
-    width: 40px;
-    height: 40px;
+    width: 2.5rem;
+    height: 2.5rem;
     margin-left: -6px;
     padding: 0;
     border: 0;
@@ -85,7 +102,7 @@ main { flex: 1; }
 
 /* Account menu under the avatar, top right */
 .account-menu {
-    width: min(280px, calc(100vw - 24px));
+    width: min(17.5rem, calc(100vw - 24px));
     padding: 0.4rem;
     border: 1px solid var(--ss-border);
     border-radius: 14px;
@@ -99,8 +116,8 @@ main { flex: 1; }
 }
 
 .account-menu-head .avatar {
-    width: 40px;
-    height: 40px;
+    width: 2.5rem;
+    height: 2.5rem;
     font-size: 1rem;
 }
 
@@ -124,7 +141,7 @@ main { flex: 1; }
 
 /* Slide-in menu (phones and tablets) */
 .app-drawer {
-    --bs-offcanvas-width: min(300px, 85vw);
+    --bs-offcanvas-width: min(18.75rem, 85vw);
 }
 
 .app-drawer .offcanvas-header {
@@ -132,8 +149,8 @@ main { flex: 1; }
 }
 
 .app-drawer .brand-mark {
-    width: 32px;
-    height: 32px;
+    width: 2rem;
+    height: 2rem;
 }
 
 .drawer-nav {
@@ -188,8 +205,8 @@ main { flex: 1; }
 }
 
 .brand-mark {
-    width: 34px;
-    height: 34px;
+    width: 2.125rem;
+    height: 2.125rem;
     border-radius: 10px;
     box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
 }
@@ -226,8 +243,8 @@ main { flex: 1; }
 }
 
 .kpi-icon {
-    width: 44px;
-    height: 44px;
+    width: 2.75rem;
+    height: 2.75rem;
     border-radius: 12px;
     display: grid;
     place-items: center;
@@ -236,8 +253,8 @@ main { flex: 1; }
 
 .cat-dot {
     display: inline-block;
-    width: 10px;
-    height: 10px;
+    width: 0.625rem;
+    height: 0.625rem;
     border-radius: 50%;
     margin-right: 6px;
 }
@@ -325,8 +342,8 @@ main { flex: 1; }
 }
 
 .feature-icon {
-    width: 48px;
-    height: 48px;
+    width: 3rem;
+    height: 3rem;
     border-radius: 14px;
     display: grid;
     place-items: center;
@@ -336,7 +353,7 @@ main { flex: 1; }
 }
 
 .auth-card {
-    max-width: 440px;
+    max-width: 27.5rem;
     margin: 3rem auto;
 }
 
@@ -363,7 +380,7 @@ main { flex: 1; }
 }
 
 .receipt-preview {
-    max-height: 520px;
+    max-height: 32.5rem;
     width: 100%;
     object-fit: contain;
     border-radius: 12px;
@@ -389,7 +406,7 @@ main { flex: 1; }
 /* ---------- Chat ---------- */
 .chat-card {
     height: calc(100vh - 220px);
-    min-height: 480px;
+    min-height: 30rem;
     display: flex;
     flex-direction: column;
 }
@@ -472,8 +489,8 @@ main { flex: 1; }
 
 /* ---------- Quick add / cash ---------- */
 .mic-btn {
-    width: 64px;
-    height: 64px;
+    width: 4rem;
+    height: 4rem;
     border-radius: 50%;
     font-size: 1.6rem;
     display: inline-grid;
@@ -501,7 +518,7 @@ main { flex: 1; }
 
 .quick-textarea {
     font-size: 1.1rem;
-    min-height: 120px;
+    min-height: 7.5rem;
 }
 
 .wallet-card {
@@ -520,7 +537,7 @@ main { flex: 1; }
 }
 
 .review-table input:not([type=checkbox]) {
-    min-width: 90px;
+    min-width: 5.5rem;
 }
 
 .review-table .input-group {
@@ -528,11 +545,11 @@ main { flex: 1; }
 }
 
 .review-table .input-group input {
-    min-width: 70px;
+    min-width: 4.5rem;
 }
 
 .review-table select {
-    min-width: 150px;
+    min-width: 9.5rem;
 }
 
 .review-table td {
@@ -541,8 +558,8 @@ main { flex: 1; }
 
 /* ---------- Account ---------- */
 .avatar {
-    width: 48px;
-    height: 48px;
+    width: 3rem;
+    height: 3rem;
     border-radius: 50%;
     display: inline-grid;
     place-items: center;
@@ -554,8 +571,8 @@ main { flex: 1; }
 }
 
 .avatar-sm {
-    width: 34px;
-    height: 34px;
+    width: 2.125rem;
+    height: 2.125rem;
     font-size: 0.9rem;
 }
 
@@ -576,8 +593,8 @@ main { flex: 1; }
 }
 
 .confirm-icon {
-    width: 56px;
-    height: 56px;
+    width: 3.5rem;
+    height: 3.5rem;
     border-radius: 16px;
     display: grid;
     place-items: center;
@@ -662,8 +679,8 @@ main { flex: 1; }
     flex: none;
     display: grid;
     place-items: center;
-    width: 38px;
-    height: 38px;
+    width: 2.375rem;
+    height: 2.375rem;
     border-radius: 10px;
     background: #f59e0b;
     color: #fff;
@@ -714,6 +731,11 @@ main { flex: 1; }
     gap: 0.4rem;
     font-weight: 700;
     color: var(--ss-text);
+}
+
+.footer-brand img {
+    width: 1.25rem;
+    height: 1.25rem;
 }
 
 @media (max-width: 576px) {

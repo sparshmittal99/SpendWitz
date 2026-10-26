@@ -38,12 +38,12 @@
             <table class="table review-table align-middle mb-0">
                 <thead>
                 <tr>
-                    <th style="width:40px"><input type="checkbox" class="form-check-input" id="toggleAll" aria-label="Tick or untick all"></th>
-                    <th style="width:150px">Date</th>
+                    <th style="width:2.5rem"><input type="checkbox" class="form-check-input" id="toggleAll" aria-label="Tick or untick all"></th>
+                    <th style="width:9.5rem">Date</th>
                     <th>Merchant</th>
-                    <th style="width:150px">Amount</th>
+                    <th style="width:9.5rem">Amount</th>
                     <th>Category</th>
-                    <th style="width:140px">Paid with</th>
+                    <th style="width:8.75rem">Paid with</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -58,7 +58,7 @@
                     <td><input type="date" class="form-control form-control-sm" th:field="*{rows[__${st.index}__].expenseDate}"></td>
                     <td>
                         <input type="text" class="form-control form-control-sm" th:field="*{rows[__${st.index}__].merchant}" maxlength="150">
-                        <div class="small text-secondary text-truncate mt-1" style="max-width:340px" th:text="${row.note}" th:title="${row.note}">UPI/DR/...</div>
+                        <div class="small text-secondary text-truncate mt-1" style="max-width:21.25rem" th:text="${row.note}" th:title="${row.note}">UPI/DR/...</div>
                         <div th:if="${row.duplicateOf != null}" class="small text-warning-emphasis"><i class="bi bi-files"></i> <span th:text="${row.duplicateOf}">Already added</span></div>
                         <div th:if="${row.needsCheck}" class="small text-danger"><i class="bi bi-exclamation-triangle"></i> Check this amount against your statement</div>
                     </td>

@@ -7,15 +7,12 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,11 +23,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.spendwitz.IntegrationTest;
-import com.spendwitz.budget.BudgetService;
 import com.spendwitz.cash.CashService;
 import com.spendwitz.common.Category;
 import com.spendwitz.common.PaymentMethod;
 import com.spendwitz.expense.ExpenseSource;
+import com.spendwitz.push.PushTokenStore;
 
 /** Renders every page for a user with data, so template errors fail the build instead of the demo. */
 @AutoConfigureMockMvc
@@ -174,27 +171,35 @@ class PagesTest extends IntegrationTest {
     private static final String APP_UA = "Mozilla/5.0 (Linux; Android 14) Chrome/130 Mobile SpendWitzAndroid/1.0.0";
 
     @Autowired
-    BudgetService budgetService;
+    PushTokenStore pushTokens;
 
     @Test
-    void budgetAlertsListThisMonthsBudgetsForTheApp() throws Exception {
+    void appRegistersPhoneForNotifications() throws Exception {
         var user = newUser();
-        budgetService.save(user.id(), Map.of(Category.FOOD_DINING, new BigDecimal("300"),
-                Category.TRANSPORT, new BigDecimal("1000")));
-        addExpense(user, "Swiggy", "320.00", Category.FOOD_DINING, LocalDate.now(clock));
+        mvc.perform(post("/app/push-token").param("token", "phone-token-1").with(user(user)).with(csrf()))
+                .andExpect(status().isNoContent());
+        assertThat(pushTokens.tokensFor(user.id())).containsExactly("phone-token-1");
 
-        mvc.perform(get("/budgets/alerts").with(user(user)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.currencySymbol").value("₹"))
-                .andExpect(jsonPath("$.categories.length()").value(2))
-                .andExpect(jsonPath("$.categories[?(@.code == 'FOOD_DINING')].overBudget").value(true))
-                .andExpect(jsonPath("$.categories[?(@.code == 'FOOD_DINING')].percentUsed").value(107))
-                .andExpect(jsonPath("$.categories[?(@.code == 'TRANSPORT')].overBudget").value(false));
+        // Signing in as someone else on the same phone moves the token
+        var other = newUser();
+        mvc.perform(post("/app/push-token").param("token", "phone-token-1").with(user(other)).with(csrf()))
+                .andExpect(status().isNoContent());
+        assertThat(pushTokens.tokensFor(user.id())).isEmpty();
+        assertThat(pushTokens.tokensFor(other.id())).containsExactly("phone-token-1");
     }
 
     @Test
-    void budgetAlertsNeedLogin() throws Exception {
-        mvc.perform(get("/budgets/alerts")).andExpect(status().is3xxRedirection());
+    void signingOutUnlinksThePhone() throws Exception {
+        var user = newUser();
+        pushTokens.register(user.id(), "phone-token-2");
+        mvc.perform(post("/logout").param("pushToken", "phone-token-2").with(user(user)).with(csrf()))
+                .andExpect(status().is3xxRedirection());
+        assertThat(pushTokens.tokensFor(user.id())).isEmpty();
+    }
+
+    @Test
+    void phoneRegistrationNeedsLogin() throws Exception {
+        mvc.perform(post("/app/push-token").param("token", "x").with(csrf())).andExpect(status().is3xxRedirection());
     }
 
     @ParameterizedTest

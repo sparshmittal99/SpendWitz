@@ -13,7 +13,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.os.SystemClock
 import android.speech.RecognizerIntent
 import android.text.format.Formatter
 import android.view.View
@@ -83,7 +82,6 @@ class MainActivity : AppCompatActivity() {
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private var cameraFile: File? = null
     private var pageFailed = false
-    private var lastBudgetCheck = 0L
     private var appliedDark: Boolean? = null
     private var introShowing = false
 
@@ -121,9 +119,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val notificationPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) checkBudgets(force = true)
-        }
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     // ---- Lifecycle ----
 
@@ -397,15 +393,6 @@ class MainActivity : AppCompatActivity() {
             !path.startsWith("/error")
         if (!signedIn) return
         askForNotificationsOnce()
-        checkBudgets(force = false)
-    }
-
-    /** Runs after each page load: saving an expense ends on a new page, so an overspend is caught right away. */
-    private fun checkBudgets(force: Boolean) {
-        val now = SystemClock.elapsedRealtime()
-        if (!force && now - lastBudgetCheck < 3_000) return
-        lastBudgetCheck = now
-        lifecycleScope.launch { BudgetAlerts.check(applicationContext) }
     }
 
     private fun askForNotificationsOnce() {
@@ -580,5 +567,10 @@ class MainActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun appVersion(): String = BuildConfig.VERSION_NAME
+
+        /** This phone's Firebase token ("" when alerts are off), linked to the account by static/js/push.js. */
+        @JavascriptInterface
+        fun pushToken(): String =
+            if (AppPrefs.budgetAlertsEnabled(this@MainActivity)) AppPrefs.pushToken(this@MainActivity) ?: "" else ""
     }
 }

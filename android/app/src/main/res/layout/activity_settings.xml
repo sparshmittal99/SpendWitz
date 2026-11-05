@@ -111,27 +111,6 @@
                             android:contentDescription="@string/budget_alerts" />
                     </LinearLayout>
 
-                    <View style="@style/Settings.Divider" />
-
-                    <LinearLayout
-                        android:id="@+id/rowCheckNow"
-                        style="@style/Settings.Row">
-
-                        <ImageView
-                            style="@style/Settings.Icon"
-                            android:src="@drawable/ic_fact_check" />
-
-                        <LinearLayout style="@style/Settings.Texts">
-
-                            <TextView
-                                style="@style/Settings.Title"
-                                android:text="@string/check_now" />
-
-                            <TextView
-                                style="@style/Settings.Subtitle"
-                                android:text="@string/check_now_hint" />
-                        </LinearLayout>
-                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

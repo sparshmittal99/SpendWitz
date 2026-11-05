@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services") // reads app/google-services.json (Firebase project "spendwitz")
 }
 
 val spendwitzUrl = (findProperty("spendwitzUrl") as String? ?: "https://spendwitz.onrender.com").trimEnd('/')
@@ -72,6 +73,8 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    // Over-budget phone notifications, sent by the server through Firebase Cloud Messaging
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation("com.google.firebase:firebase-messaging")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 }

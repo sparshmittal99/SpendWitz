@@ -147,7 +147,8 @@
                 <a href="spendwitz-app://settings"><i class="bi bi-gear"></i> App settings</a>
             </th:block>
         </nav>
-        <form th:if="${inApp}" th:action="@{/logout}" method="post" class="drawer-footer">
+        <form th:if="${inApp}" th:action="@{/logout}" method="post" class="drawer-footer" id="signOutForm">
+            <input type="hidden" name="pushToken" id="pushTokenField">
             <button type="submit" class="btn-signout"><i class="bi bi-box-arrow-right"></i> Sign out</button>
         </form>
     </div>
@@ -244,6 +245,7 @@
             <div class="small text-secondary">This usually takes 5–15 seconds.</div>
         </div>
         <script src="/js/capture.js"></script>
+        <script src="/js/push.js" th:data-user="${currentUser.id()}"></script>
     </th:block>
 </th:block>
 

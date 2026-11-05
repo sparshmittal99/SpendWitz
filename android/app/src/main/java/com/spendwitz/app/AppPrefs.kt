@@ -13,6 +13,7 @@ object AppPrefs {
     private const val KEY_DARK_MODE = "dark_mode"
     private const val KEY_BUDGET_ALERTS = "budget_alerts"
     private const val KEY_ASKED_NOTIFICATIONS = "asked_notification_permission"
+    private const val KEY_PUSH_TOKEN = "push_token"
 
     fun prefs(context: Context): SharedPreferences =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -47,6 +48,13 @@ object AppPrefs {
 
     fun setBudgetAlertsEnabled(context: Context, enabled: Boolean) {
         prefs(context).edit().putBoolean(KEY_BUDGET_ALERTS, enabled).apply()
+    }
+
+    /** This phone's Firebase token, or null when alerts are off. The web page links it to the account. */
+    fun pushToken(context: Context): String? = prefs(context).getString(KEY_PUSH_TOKEN, null)
+
+    fun setPushToken(context: Context, token: String?) {
+        prefs(context).edit().putString(KEY_PUSH_TOKEN, token).apply()
     }
 
     /** The notification permission prompt is shown once automatically; after that only from App settings. */

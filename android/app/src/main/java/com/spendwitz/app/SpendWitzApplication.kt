@@ -1,6 +1,7 @@
 package com.spendwitz.app
 
 import android.app.Application
+import android.app.job.JobScheduler
 
 class SpendWitzApplication : Application() {
 
@@ -8,8 +9,8 @@ class SpendWitzApplication : Application() {
         super.onCreate()
         AppPrefs.applyNightMode(this)
         BudgetAlerts.createChannel(this)
-        if (AppPrefs.budgetAlertsEnabled(this)) {
-            BudgetCheckWorker.schedule(this)
-        }
+        BudgetAlerts.syncToken(this)
+        // Earlier test builds checked budgets every 15 minutes in the background: remove that leftover schedule
+        getSystemService(JobScheduler::class.java)?.cancelAll()
     }
 }

@@ -14,6 +14,8 @@ services:
         value: gemini-3.1-flash-lite
       - key: GROQ_API_KEY            # optional: fast assistant chat via Groq (falls back to Gemini)
         sync: false
+      - key: FIREBASE_CREDENTIALS    # Firebase service account key (one-line JSON): over-budget phone notifications
+        sync: false
       - key: DATABASE_URL        # jdbc:postgresql://<neon-host>/neondb?sslmode=require  (direct host, pooling off)
         sync: false
       - key: DATABASE_USERNAME

@@ -12,6 +12,8 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.spendwitz.push.PushTokenStore;
+
 @Configuration
 public class SecurityConfig {
 
@@ -22,7 +24,7 @@ public class SecurityConfig {
     private final String rememberMeKey = UUID.randomUUID().toString();
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, PushTokenStore pushTokens) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
                 // streamed assistant responses complete on an async dispatch
@@ -38,7 +40,16 @@ public class SecurityConfig {
             .rememberMe(remember -> remember
                 .key(rememberMeKey)
                 .tokenValiditySeconds((int) Duration.ofDays(365).toSeconds()))
-            .logout(logout -> logout.logoutSuccessUrl("/login?logout").permitAll());
+            .logout(logout -> logout
+                // The Android app sends its phone's token: unlink it, so alerts stop until someone signs in again
+                .addLogoutHandler((request, response, authentication) -> {
+                    String token = request.getParameter("pushToken");
+                    if (token != null && !token.isBlank()) {
+                        pushTokens.remove(token.trim());
+                    }
+                })
+                .logoutSuccessUrl("/login?logout")
+                .permitAll());
         return http.build();
     }
 

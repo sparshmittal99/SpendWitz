@@ -39,8 +39,6 @@
     <string name="section_notifications">Notifications</string>
     <string name="budget_alerts">Budget alerts</string>
     <string name="budget_alerts_hint">Notify me when a category goes over its monthly budget</string>
-    <string name="check_now">Check budgets now</string>
-    <string name="check_now_hint">See if any category is over budget this month</string>
     <string name="section_photos">Photos</string>
     <string name="photo_compression">Automatic photo compression</string>
     <string name="photo_compression_hint">Bill photos are resized to at most 2000 px and compressed to about 1 MB before upload, so they stay well under the 6 MB limit and upload faster.</string>
@@ -54,16 +52,8 @@
 
     <string name="notifications_blocked">Notifications are turned off for SpendWitz.</string>
     <string name="open_settings">Open settings</string>
-    <string name="checking">Checking your budgets…</string>
-    <string name="check_all_within">All categories are within budget this month.</string>
-    <string name="check_over">Over budget: %1$s</string>
-    <string name="check_no_budgets">You haven\'t set any budgets yet.</string>
-    <string name="check_signed_out">Sign in to SpendWitz in the app first.</string>
-    <string name="check_failed">Couldn\'t reach SpendWitz. Try again in a minute.</string>
 
     <!-- Notifications -->
     <string name="channel_budget_name">Budget alerts</string>
     <string name="channel_budget_description">When a spending category goes over its monthly budget</string>
-    <string name="budget_alert_title">%1$s is over budget</string>
-    <string name="budget_alert_text">You\'ve spent %1$s of your %2$s budget this month (%3$d%%).</string>
 </resources>

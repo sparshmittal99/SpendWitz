@@ -4,10 +4,8 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.YearMonth;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 
-import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,11 +13,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.spendwitz.common.Category;
-import com.spendwitz.common.Money;
+import com.spendwitz.push.BudgetPushService;
 import com.spendwitz.user.AuthUser;
 
 @Controller
@@ -27,10 +24,12 @@ import com.spendwitz.user.AuthUser;
 public class BudgetController {
 
     private final BudgetService budgets;
+    private final BudgetPushService push;
     private final Clock clock;
 
-    public BudgetController(BudgetService budgets, Clock clock) {
+    public BudgetController(BudgetService budgets, BudgetPushService push, Clock clock) {
         this.budgets = budgets;
+        this.push = push;
         this.clock = clock;
     }
 
@@ -39,21 +38,6 @@ public class BudgetController {
         model.addAttribute("limits", budgets.limits(user.id()));
         model.addAttribute("statuses", budgets.statusFor(user.id(), YearMonth.now(clock)));
         return "budgets/index";
-    }
-
-    /**
-     * This month's budget status as JSON. The Android app polls it to notify the user when a category goes over
-     * its limit.
-     */
-    @GetMapping(value = "/alerts", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public BudgetAlerts alerts(@AuthenticationPrincipal AuthUser user) {
-        YearMonth month = YearMonth.now(clock);
-        List<BudgetAlerts.Item> items = budgets.statusFor(user.id(), month).stream()
-                .map(s -> new BudgetAlerts.Item(s.category().name(), s.category().getLabel(), s.limit(), s.spent(),
-                        s.percentUsed(), s.overBudget()))
-                .toList();
-        return new BudgetAlerts(month.toString(), Money.symbol(user.currency()), items);
     }
 
     /** Form fields are named after the category code, e.g. FOOD_DINING=6000. */
@@ -78,6 +62,7 @@ public class BudgetController {
             }
         }
         budgets.save(user.id(), limits);
+        push.onBudgetsSaved(user.id()); // a lowered limit can put a category over budget
         redirect.addFlashAttribute("success", "Budgets saved.");
         return "redirect:/budgets";
     }

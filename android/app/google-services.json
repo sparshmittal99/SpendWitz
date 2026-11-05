@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "615864166044",
+    "project_id": "spendwitz",
+    "storage_bucket": "spendwitz.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:615864166044:android:b7441ad5c260ab3a7cef59",
+        "android_client_info": {
+          "package_name": "com.spendwitz.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwH2r9Am9OuqPLjiPQCjK3QfPJVXGb7oo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

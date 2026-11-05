@@ -16,13 +16,7 @@
     </div>
 
     <div class="row g-4">
-        <div class="col-lg-5" th:if="${receiptPreview != null}">
-            <div class="card p-3 sticky-lg-top" style="top:5rem">
-                <img th:src="${receiptPreview}" class="receipt-preview" alt="Uploaded receipt">
-            </div>
-        </div>
-
-        <div th:class="${receiptPreview != null} ? 'col-lg-7' : 'col-lg-8'">
+        <div class="col-lg-8">
             <form id="expenseForm" class="card p-4" method="post" novalidate th:object="${form}"
                   th:action="${expenseId != null} ? @{/expenses/{id}(id=${expenseId})} : @{/expenses}">
                 <input type="hidden" th:field="*{source}">

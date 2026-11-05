@@ -14,7 +14,8 @@
         </div>
         <div class="quick-actions d-flex gap-2">
             <a href="/quick-add" class="btn btn-primary"><i class="bi bi-mic"></i> Type or speak</a>
-            <a href="/receipts/scan" class="btn btn-outline-primary"><i class="bi bi-camera"></i> Scan bill / UPI</a>
+            <!-- In the app the camera button in the top bar does this -->
+            <a th:unless="${inApp}" href="/receipts/scan" class="btn btn-outline-primary"><i class="bi bi-camera"></i> Scan bill / UPI</a>
             <a href="/cash" class="btn btn-outline-success"><i class="bi bi-cash-coin"></i> Cash</a>
         </div>
     </div>
@@ -23,10 +24,11 @@
     <div th:if="${view.expenseCount() == 0}" class="card p-5 text-center mb-4">
         <div class="feature-icon mx-auto mb-3"><i class="bi bi-receipt"></i></div>
         <h4 class="fw-bold">Add your first expense</h4>
-        <p class="text-secondary">Type or say what you spent ("sabzi 150, chai 20"), scan a bill or UPI screenshot, or log cash.</p>
+        <p class="text-secondary">Type or say what you spent ("sabzi 150, chai 20"), scan a bill or UPI screenshot, or log cash.
+            <span th:if="${inApp}">To scan a bill, tap <i class="bi bi-camera"></i> at the top.</span></p>
         <div class="d-flex flex-wrap justify-content-center gap-2">
             <a href="/quick-add" class="btn btn-primary"><i class="bi bi-mic"></i> Type or speak</a>
-            <a href="/receipts/scan" class="btn btn-outline-primary">Scan bill / UPI</a>
+            <a th:unless="${inApp}" href="/receipts/scan" class="btn btn-outline-primary">Scan bill / UPI</a>
             <a href="/cash" class="btn btn-outline-success">Add cash</a>
         </div>
     </div>
@@ -223,29 +225,34 @@
     const trendValues = /*[[${view.trendValues()}]]*/ [];
     const money = v => symbol + Math.round(v).toLocaleString('en-IN');
 
+    // Colours follow the theme (the Android app can switch to dark mode)
+    const chartTheme = () => document.documentElement.getAttribute('data-bs-theme') === 'dark'
+        ? { text: '#9ca3af', grid: '#2a2f3d', card: '#181b24', bar: '#3730a3' }
+        : { text: '#6b7280', grid: '#eef0f6', card: '#fff', bar: '#c7d2fe' };
+    const charts = [];
     Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
-    Chart.defaults.color = '#6b7280';
+    Chart.defaults.color = chartTheme().text;
 
     const categoryCanvas = document.getElementById('categoryChart');
     if (categoryCanvas) {
-        new Chart(categoryCanvas, {
+        charts.push(new Chart(categoryCanvas, {
             type: 'doughnut',
-            data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: catColors, borderWidth: 2, borderColor: '#fff' }] },
+            data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: catColors, borderWidth: 2, borderColor: chartTheme().card }] },
             options: {
                 maintainAspectRatio: false, cutout: '68%',
                 plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.label}: ${money(c.parsed)}` } } }
             }
-        });
+        }));
     }
     const trendCanvas = document.getElementById('trendChart');
     if (trendCanvas) {
-        new Chart(trendCanvas, {
+        charts.push(new Chart(trendCanvas, {
             type: 'bar',
             data: {
                 labels: trendLabels,
                 datasets: [{
                     data: trendValues,
-                    backgroundColor: trendValues.map((_, i) => i === trendValues.length - 1 ? '#4f46e5' : '#c7d2fe'),
+                    backgroundColor: trendValues.map((_, i) => i === trendValues.length - 1 ? '#4f46e5' : chartTheme().bar),
                     borderRadius: 8, maxBarThickness: 48
                 }]
             },
@@ -253,12 +260,25 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + money(c.parsed.y) } } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: '#eef0f6' }, ticks: { callback: v => money(v) } },
+                    y: { beginAtZero: true, grid: { color: chartTheme().grid }, ticks: { callback: v => money(v) } },
                     x: { grid: { display: false } }
                 }
             }
-        });
+        }));
     }
+    document.addEventListener('spendwitz:theme', () => {
+        const t = chartTheme();
+        Chart.defaults.color = t.text;
+        charts.forEach(chart => {
+            const ds = chart.data.datasets[0];
+            if (chart.config.type === 'doughnut') ds.borderColor = t.card;
+            else {
+                ds.backgroundColor = trendValues.map((_, i) => i === trendValues.length - 1 ? '#4f46e5' : t.bar);
+                chart.options.scales.y.grid.color = t.grid;
+            }
+            chart.update('none');
+        });
+    });
 
     // Show a spinner while the AI writes insights
     document.querySelectorAll('.ai-form').forEach(f => f.addEventListener('submit', () => {

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Same palette as the web app (static/css/app.css) -->
+    <color name="brand">#FF4F46E5</color>
+    <color name="accent">#FF10B981</color>
+
+    <color name="primary">#FF4F46E5</color>
+    <color name="on_primary">#FFFFFFFF</color>
+    <color name="primary_container">#FFE0E7FF</color>
+    <color name="on_primary_container">#FF1E1B4B</color>
+    <color name="page_bg">#FFF6F7FB</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="on_surface">#FF1E1B4B</color>
+    <color name="muted">#FF6B7280</color>
+    <color name="outline">#FFE7E9F2</color>
+    <color name="bar_bg">#FFFFFFFF</color>
+    <!-- Android 8.0 has no dark navigation buttons, so its navigation bar stays black (values-v27 makes it white) -->
+    <color name="nav_bar_bg">#FF000000</color>
+
+    <color name="notice_bg">#FFFFFBEB</color>
+    <color name="notice_border">#FFFDE68A</color>
+    <color name="notice_text">#FF78350F</color>
+    <color name="notice_title">#FFB45309</color>
+</resources>

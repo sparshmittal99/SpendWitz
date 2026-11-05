@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark palette, matching [data-bs-theme="dark"] in the web app's app.css -->
+    <color name="primary">#FFA5B4FC</color>
+    <color name="on_primary">#FF1E1B4B</color>
+    <color name="primary_container">#FF3730A3</color>
+    <color name="on_primary_container">#FFE0E7FF</color>
+    <color name="page_bg">#FF0F1117</color>
+    <color name="surface">#FF181B24</color>
+    <color name="on_surface">#FFE5E7F0</color>
+    <color name="muted">#FF9CA3AF</color>
+    <color name="outline">#FF2A2F3D</color>
+    <color name="bar_bg">#FF181B24</color>
+    <color name="nav_bar_bg">#FF181B24</color>
+
+    <color name="notice_bg">#FF2A2110</color>
+    <color name="notice_border">#FF5C4A16</color>
+    <color name="notice_text">#FFFDE68A</color>
+    <color name="notice_title">#FFFBBF24</color>
+</resources>

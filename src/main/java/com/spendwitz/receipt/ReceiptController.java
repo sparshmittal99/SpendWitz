@@ -2,7 +2,6 @@ package com.spendwitz.receipt;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 import org.springframework.core.io.ClassPathResource;
@@ -95,10 +94,7 @@ public class ReceiptController {
             model.addAttribute("form", result.form());
             model.addAttribute("categoryReason", result.categoryReason());
             model.addAttribute("duplicateOf", result.duplicateOf());
-            if (contentType.startsWith("image/") && !contentType.contains("hei")) {
-                model.addAttribute("receiptPreview",
-                        "data:" + contentType + ";base64," + Base64.getEncoder().encodeToString(bytes));
-            }
+            // The upload itself is never shown back or kept: only the extracted details go to the form
             return "expenses/form";
         } catch (AiUnavailableException | IllegalArgumentException e) {
             redirect.addFlashAttribute("error", e.getMessage());

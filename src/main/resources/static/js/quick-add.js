@@ -13,6 +13,23 @@
         document.getElementById('loading').classList.add('show'));
     window.addEventListener('pageshow', () => document.getElementById('loading').classList.remove('show'));
 
+    // Android app: its WebView has no Web Speech API, so the app's own speech recognizer is used instead
+    const app = window.SpendWitzApp;
+    if (app && typeof app.startVoiceInput === 'function') {
+        micBtn.addEventListener('click', () => {
+            status.textContent = 'Listening… say something like "sabzi 150, chai 20".';
+            app.startVoiceInput(lang.value);
+        });
+        window.spendwitzVoiceResult = transcript => {
+            const base = text.value.trim() ? text.value.trim() + ', ' : '';
+            text.value = base + transcript.trim();
+            voiceFlag.value = 'true';
+            status.textContent = 'Got it. Check the text, then tap Extract expenses.';
+        };
+        window.spendwitzVoiceError = message => { status.textContent = message; };
+        return;
+    }
+
     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Recognition) {
         micBtn.disabled = true;

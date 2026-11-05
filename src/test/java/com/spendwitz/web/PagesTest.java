@@ -6,12 +6,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.spendwitz.IntegrationTest;
+import com.spendwitz.budget.BudgetService;
 import com.spendwitz.cash.CashService;
 import com.spendwitz.common.Category;
 import com.spendwitz.common.PaymentMethod;
@@ -164,5 +169,57 @@ class PagesTest extends IntegrationTest {
                         .param("merchant", "")
                         .param("amount", "-5"))
                 .andExpect(status().isOk());
+    }
+
+    private static final String APP_UA = "Mozilla/5.0 (Linux; Android 14) Chrome/130 Mobile SpendWitzAndroid/1.0.0";
+
+    @Autowired
+    BudgetService budgetService;
+
+    @Test
+    void budgetAlertsListThisMonthsBudgetsForTheApp() throws Exception {
+        var user = newUser();
+        budgetService.save(user.id(), Map.of(Category.FOOD_DINING, new BigDecimal("300"),
+                Category.TRANSPORT, new BigDecimal("1000")));
+        addExpense(user, "Swiggy", "320.00", Category.FOOD_DINING, LocalDate.now(clock));
+
+        mvc.perform(get("/budgets/alerts").with(user(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currencySymbol").value("₹"))
+                .andExpect(jsonPath("$.categories.length()").value(2))
+                .andExpect(jsonPath("$.categories[?(@.code == 'FOOD_DINING')].overBudget").value(true))
+                .andExpect(jsonPath("$.categories[?(@.code == 'FOOD_DINING')].percentUsed").value(107))
+                .andExpect(jsonPath("$.categories[?(@.code == 'TRANSPORT')].overBudget").value(false));
+    }
+
+    @Test
+    void budgetAlertsNeedLogin() throws Exception {
+        mvc.perform(get("/budgets/alerts")).andExpect(status().is3xxRedirection());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/dashboard", "/expenses", "/budgets", "/assistant", "/receipts/scan", "/quick-add", "/cash"})
+    void appGetsAndroidShell(String path) throws Exception {
+        mvc.perform(get(path).header("User-Agent", APP_UA).with(user(newUser())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("app-bottom-nav")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("spendwitz-app://settings")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"captureFile\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("btn-signout")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("account-menu"))));
+    }
+
+    @Test
+    void browsersDontGetAndroidShell() throws Exception {
+        mvc.perform(get("/dashboard").with(user(newUser())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("app-bottom-nav"))));
+    }
+
+    @Test
+    void appLoginAsksToBeRemembered() throws Exception {
+        mvc.perform(get("/login").header("User-Agent", APP_UA))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"remember-me\"")));
     }
 }

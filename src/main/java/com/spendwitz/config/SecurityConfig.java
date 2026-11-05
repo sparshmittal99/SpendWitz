@@ -1,5 +1,8 @@
 package com.spendwitz.config;
 
+import java.time.Duration;
+import java.util.UUID;
+
 import jakarta.servlet.DispatcherType;
 
 import org.springframework.context.annotation.Bean;
@@ -11,6 +14,12 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
+
+    /**
+     * Signs the Android app's "stay signed in" cookie. A new key on every start: app users stay signed in until they
+     * sign out, clear the app's data, or the server restarts.
+     */
+    private final String rememberMeKey = UUID.randomUUID().toString();
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -25,6 +34,10 @@ public class SecurityConfig {
                 .loginPage("/login")
                 .defaultSuccessUrl("/dashboard", true)
                 .permitAll())
+            // Only when the login form sends remember-me=on (the Android app does)
+            .rememberMe(remember -> remember
+                .key(rememberMeKey)
+                .tokenValiditySeconds((int) Duration.ofDays(365).toSeconds()))
             .logout(logout -> logout.logoutSuccessUrl("/login?logout").permitAll());
         return http.build();
     }

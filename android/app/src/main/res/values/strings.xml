@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SpendWitz</string>
+    <string name="intro_tagline">AI expense tracker</string>
+
+    <!-- Main screen -->
+    <string name="offline_title">Can\'t reach SpendWitz</string>
+    <string name="offline_message">Check your internet connection. If you just opened the app, the server may be waking up, which can take up to a minute.</string>
+    <string name="retry">Try again</string>
+    <string name="photo_compressed">Photo compressed: %1$s → %2$s</string>
+    <plurals name="photos_compressed">
+        <item quantity="one">%1$d photo compressed: %2$s → %3$s</item>
+        <item quantity="other">%1$d photos compressed: %2$s → %3$s</item>
+    </plurals>
+    <string name="no_camera_app">No camera app found on this phone.</string>
+    <string name="no_file_picker">No app found to choose files.</string>
+    <string name="download_started">Downloading %1$s…</string>
+    <string name="cannot_open_link">No app can open this link.</string>
+
+    <!-- Add a bill sheet -->
+    <string name="sheet_title">Add a bill or UPI screenshot</string>
+    <string name="option_camera">Take a photo</string>
+    <string name="option_camera_hint">Compressed automatically to fit the upload limit</string>
+    <string name="option_gallery">Choose from gallery</string>
+    <string name="option_gallery_hint">Photos and screenshots</string>
+    <string name="option_files">Browse files</string>
+    <string name="option_files_hint">PDF invoices and other files</string>
+
+    <!-- Voice -->
+    <string name="voice_prompt">Say your expenses, e.g. \"sabzi 150, chai 20\"</string>
+    <string name="voice_unavailable">Voice input isn\'t available on this phone. You can type instead.</string>
+    <string name="voice_cancelled">Didn\'t catch that. Tap the mic to try again, or type instead.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">App settings</string>
+    <string name="section_appearance">Appearance</string>
+    <string name="dark_mode">Dark mode</string>
+    <string name="dark_mode_hint">Use a dark theme across the app</string>
+    <string name="section_notifications">Notifications</string>
+    <string name="budget_alerts">Budget alerts</string>
+    <string name="budget_alerts_hint">Notify me when a category goes over its monthly budget</string>
+    <string name="check_now">Check budgets now</string>
+    <string name="check_now_hint">See if any category is over budget this month</string>
+    <string name="section_photos">Photos</string>
+    <string name="photo_compression">Automatic photo compression</string>
+    <string name="photo_compression_hint">Bill photos are resized to at most 2000 px and compressed to about 1 MB before upload, so they stay well under the 6 MB limit and upload faster.</string>
+    <string name="section_about">About</string>
+    <string name="version">Version</string>
+    <string name="server">Server</string>
+    <string name="notice_title">Important</string>
+    <string name="notice_1">• Never enter your real financial data, card numbers or bank passwords.</string>
+    <string name="notice_2">• AI can make mistakes. Check amounts and categories before saving.</string>
+    <string name="notice_3">• Insights are for information only, not financial advice.</string>
+
+    <string name="notifications_blocked">Notifications are turned off for SpendWitz.</string>
+    <string name="open_settings">Open settings</string>
+    <string name="checking">Checking your budgets…</string>
+    <string name="check_all_within">All categories are within budget this month.</string>
+    <string name="check_over">Over budget: %1$s</string>
+    <string name="check_no_budgets">You haven\'t set any budgets yet.</string>
+    <string name="check_signed_out">Sign in to SpendWitz in the app first.</string>
+    <string name="check_failed">Couldn\'t reach SpendWitz. Try again in a minute.</string>
+
+    <!-- Notifications -->
+    <string name="channel_budget_name">Budget alerts</string>
+    <string name="channel_budget_description">When a spending category goes over its monthly budget</string>
+    <string name="budget_alert_title">%1$s is over budget</string>
+    <string name="budget_alert_text">You\'ve spent %1$s of your %2$s budget this month (%3$d%%).</string>
+</resources>

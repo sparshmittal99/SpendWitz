@@ -93,6 +93,28 @@ Run the tests (they start their own pgvector container and never call Gemini):
 
 The demo account is created on first start and reset every night at 03:00 IST.
 
+## Android app
+
+The `android/` folder is a native Android app (Kotlin) that opens SpendWitz in a WebView and adds what a phone browser can't do well:
+
+| Feature | How it works |
+|---|---|
+| **App-style screens** | The server spots the app's user agent (`SpendWitzAndroid/...`) and gives every page a bottom navigation bar, an *Add* bottom sheet, and an **App settings** entry in the side menu and the account menu. The web footer moves into App settings. |
+| **Camera with compression** | Tapping the upload area opens a sheet: *Take a photo*, *Choose from gallery* or *Browse files*. Photos are resized to at most 2000 px, EXIF-rotated and re-encoded as JPEG of about 1 MB before upload, so a 5–12 MB camera photo fits the 6 MB limit with room to spare. PDFs and spreadsheets are passed through untouched. |
+| **Dark mode** | A switch in App settings. Native screens use Material 3 DayNight; web pages get Bootstrap's `data-bs-theme="dark"` with the dark palette in `app.css`, applied before the first paint. |
+| **Over-budget notifications** | After every page load, and every 3 hours in the background (WorkManager), the app calls `GET /budgets/alerts` and notifies once per category per month when spending goes over the limit. Tapping the notification opens Budgets. The app's login form sends `remember-me`, so background checks keep working after the session expires. |
+| **Voice input** | Android's WebView has no Web Speech API, so *Type or speak it* uses the phone's speech recognizer (English or Hindi). |
+
+Build it with Android Studio (open the `android/` folder), or from the command line with JDK 17:
+
+```bash
+cd android
+./gradlew assembleDebug                                         # app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleDebug -PspendwitzUrl=http://10.0.2.2:8080     # point an emulator at your local server
+```
+
+The app opens `https://spendwitz.onrender.com` by default (`spendwitzUrl` in `android/gradle.properties`). The server must run the version with the `/budgets/alerts` endpoint for the app's screens and notifications. For a signed release build, add `android/keystore.properties` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`) and run `./gradlew assembleRelease`.
+
 ## Project structure
 
 ```

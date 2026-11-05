@@ -7,12 +7,70 @@
     --ss-border: #e7e9f2;
     --ss-text: #1e1b4b;
     --ss-muted: #6b7280;
+    --ss-soft: #eef0ff;          /* hover / active tint */
+    --ss-chip: #e0e7ff;
+    --ss-surface-2: #f1f3f9;     /* chat bubbles, badges, sheet tiles */
+    --ss-nav-bg: rgba(255, 255, 255, 0.9);
+    --ss-overlay: rgba(246, 247, 251, 0.92);
+    --ss-dropzone-border: #c7cbe0;
+    --ss-dropzone-bg: #fafbff;
     --bs-primary: #4f46e5;
     --bs-primary-rgb: 79, 70, 229;
     --bs-link-color: #4f46e5;
     --bs-link-hover-color: #4338ca;
     --bs-body-font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
+
+/* Dark theme: switched on from the Android app's settings (data-bs-theme="dark" on <html>) */
+[data-bs-theme="dark"] {
+    --ss-primary: #6366f1;
+    --ss-primary-dark: #4f46e5;
+    --ss-bg: #0f1117;
+    --ss-card: #181b24;
+    --ss-border: #2a2f3d;
+    --ss-text: #e5e7f0;
+    --ss-muted: #9ca3af;
+    --ss-soft: rgba(99, 102, 241, 0.18);
+    --ss-chip: rgba(99, 102, 241, 0.24);
+    --ss-surface-2: #232735;
+    --ss-nav-bg: rgba(24, 27, 36, 0.94);
+    --ss-overlay: rgba(15, 17, 23, 0.92);
+    --ss-dropzone-border: #3a4052;
+    --ss-dropzone-bg: #151821;
+    --bs-primary: #6366f1;
+    --bs-primary-rgb: 99, 102, 241;
+    --bs-body-bg: var(--ss-bg);
+    --bs-body-color: var(--ss-text);
+    --bs-border-color: var(--ss-border);
+    --bs-link-color: #a5b4fc;
+    --bs-link-color-rgb: 165, 180, 252;
+    --bs-link-hover-color: #c7d2fe;
+    --bs-link-hover-color-rgb: 199, 210, 254;
+    color-scheme: dark;
+}
+
+[data-bs-theme="dark"] .table { --bs-table-bg: transparent; }
+[data-bs-theme="dark"] .bg-white { background-color: var(--ss-card) !important; }
+[data-bs-theme="dark"] .btn-light {
+    --bs-btn-color: var(--ss-text);
+    --bs-btn-bg: var(--ss-surface-2);
+    --bs-btn-border-color: var(--ss-border);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #2c3142;
+    --bs-btn-hover-border-color: #3a4052;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #2c3142;
+    --bs-btn-active-border-color: #3a4052;
+}
+/* The dashboard's pastel icon tiles are inline styles; tone them down */
+[data-bs-theme="dark"] .kpi-icon { background-color: rgba(255, 255, 255, 0.06) !important; }
+[data-bs-theme="dark"] .ai-card { background: linear-gradient(135deg, #1e1b4b 0%, #221c3d 50%, #0f2a24 100%); border-color: #312e81; }
+[data-bs-theme="dark"] .cat-badge { color: #d1d5db; }
+[data-bs-theme="dark"] .msg-error { background: #3b1d1d; color: #fca5a5; }
+[data-bs-theme="dark"] .confirm-icon { background: rgba(220, 38, 38, 0.18); color: #f87171; }
+[data-bs-theme="dark"] .danger-zone { border-color: #7f1d1d; }
+[data-bs-theme="dark"] .footer-notice { background: linear-gradient(135deg, #2a2110, #33270f); border-color: #5c4a16; color: #fde68a; }
+[data-bs-theme="dark"] .footer-notice-title { color: #fbbf24; }
 
 body {
     background: var(--ss-bg);
@@ -61,7 +119,7 @@ main { flex: 1; }
 
 /* ---------- Navbar ---------- */
 .app-navbar {
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--ss-nav-bg);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--ss-border);
 }
@@ -77,7 +135,7 @@ main { flex: 1; }
 .app-navbar .nav-link.active,
 .app-navbar .nav-link:hover {
     color: var(--ss-primary);
-    background: #eef0ff;
+    background: var(--ss-soft);
 }
 
 /* Hamburger that opens the slide-in menu on phones and tablets */
@@ -96,7 +154,7 @@ main { flex: 1; }
 
 .nav-menu-btn:hover,
 .nav-menu-btn:focus-visible {
-    background: #eef0ff;
+    background: var(--ss-soft);
     color: var(--ss-primary);
 }
 
@@ -132,7 +190,7 @@ main { flex: 1; }
 .account-menu .dropdown-item.active,
 .account-menu .dropdown-item:active {
     color: var(--ss-primary);
-    background: #eef0ff;
+    background: var(--ss-soft);
 }
 
 .min-w-0 {
@@ -177,7 +235,7 @@ main { flex: 1; }
 
 .drawer-nav a:hover,
 .drawer-nav a.active {
-    background: #eef0ff;
+    background: var(--ss-soft);
     color: var(--ss-primary);
 }
 
@@ -213,6 +271,7 @@ main { flex: 1; }
 
 /* ---------- Cards ---------- */
 .card {
+    --bs-card-bg: var(--ss-card);
     border: 1px solid var(--ss-border);
     border-radius: 16px;
     box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
@@ -267,7 +326,7 @@ main { flex: 1; }
     border-radius: 999px;
     font-size: 0.8rem;
     font-weight: 500;
-    background: #f1f3f9;
+    background: var(--ss-surface-2);
     color: #374151;
     white-space: nowrap;
 }
@@ -303,7 +362,7 @@ main { flex: 1; }
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--ss-primary);
-    background: #e0e7ff;
+    background: var(--ss-chip);
     border-radius: 999px;
     padding: 0.2rem 0.6rem;
 }
@@ -348,7 +407,7 @@ main { flex: 1; }
     display: grid;
     place-items: center;
     font-size: 1.4rem;
-    background: #eef0ff;
+    background: var(--ss-soft);
     color: var(--ss-primary);
 }
 
@@ -359,11 +418,11 @@ main { flex: 1; }
 
 /* ---------- Receipt scan ---------- */
 .dropzone {
-    border: 2px dashed #c7cbe0;
+    border: 2px dashed var(--ss-dropzone-border);
     border-radius: 16px;
     padding: 3rem 1.5rem;
     text-align: center;
-    background: #fafbff;
+    background: var(--ss-dropzone-bg);
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
 }
@@ -371,7 +430,7 @@ main { flex: 1; }
 .dropzone:hover,
 .dropzone.dragover {
     border-color: var(--ss-primary);
-    background: #eef0ff;
+    background: var(--ss-soft);
 }
 
 .dropzone i {
@@ -379,18 +438,10 @@ main { flex: 1; }
     color: var(--ss-primary);
 }
 
-.receipt-preview {
-    max-height: 32.5rem;
-    width: 100%;
-    object-fit: contain;
-    border-radius: 12px;
-    background: #f1f3f9;
-}
-
 .loading-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(246, 247, 251, 0.92);
+    background: var(--ss-overlay);
     display: none;
     flex-direction: column;
     align-items: center;
@@ -454,7 +505,7 @@ main { flex: 1; }
 
 .msg-ai {
     align-self: flex-start;
-    background: #f1f3f9;
+    background: var(--ss-surface-2);
     border-bottom-left-radius: 4px;
 }
 
@@ -652,7 +703,7 @@ main { flex: 1; }
     color: var(--ss-muted);
     font-size: 0.85rem;
     margin-top: 3rem;
-    background: #fff;
+    background: var(--ss-card);
 }
 
 /* Thin brand-gradient line along the top edge */
@@ -749,4 +800,254 @@ main { flex: 1; }
     .kpi-value { font-size: 1.4rem; }
     .msg { max-width: 95%; }
     .table > :not(caption) > * > * { padding: 0.6rem 0.5rem; }
+}
+
+/* Surfaces follow the theme (white in light mode, as before) */
+.dropdown-menu { --bs-dropdown-bg: var(--ss-card); }
+.offcanvas { --bs-offcanvas-bg: var(--ss-card); }
+.modal { --bs-modal-bg: var(--ss-card); }
+.list-group { --bs-list-group-bg: var(--ss-card); }
+
+/* ---------- Android app shell (html.in-app, set only inside the app) ---------- */
+html.in-app {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.in-app body {
+    /* room for the bottom navigation bar */
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom));
+    overscroll-behavior-y: none;
+}
+
+.in-app .app-navbar {
+    background: var(--ss-card);
+    backdrop-filter: none;
+    min-height: 3.5rem;
+}
+
+.in-app .navbar-brand { font-size: 1.15rem; }
+
+.in-app main {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+
+.in-app .page-title { font-size: 1.45rem; }
+
+.in-app .card { border-radius: 18px; }
+
+/* No accidental text selection on long-press of controls, like a native app */
+.in-app .app-navbar,
+.in-app .drawer-nav,
+.in-app .app-bottom-nav,
+.in-app .app-sheet,
+.in-app .btn,
+.in-app .dropdown-item {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Navigation drawer: rounded edge and pill-shaped items (Material 3) */
+.in-app .app-drawer {
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+.in-app .drawer-nav a { border-radius: 999px; padding-inline: 1rem; }
+
+.in-app .dropzone { padding: 2rem 1rem; }
+
+/* Chat fills the space between the top bar and the bottom bar */
+.in-app .chat-card {
+    height: calc(100dvh - 15rem - env(safe-area-inset-bottom));
+    min-height: 18rem;
+}
+
+/* Bottom navigation bar */
+.app-bottom-nav {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 1030;
+    display: flex;
+    justify-content: space-around;
+    align-items: stretch;
+    height: calc(4.25rem + env(safe-area-inset-bottom));
+    padding: 0 0.25rem env(safe-area-inset-bottom);
+    background: var(--ss-card);
+    border-top: 1px solid var(--ss-border);
+    box-shadow: 0 -2px 12px rgba(16, 24, 40, 0.06);
+}
+
+.app-bottom-nav > a,
+.app-bottom-nav > button {
+    flex: 1;
+    max-width: 7rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ss-muted);
+    text-decoration: none;
+}
+
+/* Material 3 active indicator: a pill behind the icon */
+.app-bottom-nav > a .bi {
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0.25rem 1.1rem;
+    border-radius: 999px;
+    transition: background-color 0.15s;
+}
+
+.app-bottom-nav > a.active,
+.app-bottom-nav > button.active { color: var(--ss-primary); }
+.app-bottom-nav > a.active .bi { background: var(--ss-soft); }
+
+.bottom-nav-fab {
+    display: grid;
+    place-items: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    margin-top: -1.3rem;
+    border-radius: 16px;
+    background: var(--ss-primary);
+    color: #fff;
+    font-size: 1.35rem;
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+    border: 3px solid var(--ss-card);
+    box-sizing: content-box;
+}
+
+/* Add-expense bottom sheet */
+.app-sheet {
+    --bs-offcanvas-height: auto;
+    border-radius: 24px 24px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    max-width: 40rem;
+    margin-inline: auto;
+}
+
+.sheet-handle {
+    width: 2.5rem;
+    height: 4px;
+    margin: 0.6rem auto 0;
+    border-radius: 2px;
+    background: var(--ss-border);
+}
+
+.sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    padding-bottom: 0.75rem;
+}
+
+.sheet-grid a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.9rem 0.4rem;
+    border-radius: 16px;
+    background: var(--ss-surface-2);
+    color: var(--ss-text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+}
+
+.sheet-grid a:active { background: var(--ss-soft); }
+.sheet-grid a .bi { font-size: 1.45rem; color: var(--ss-primary); }
+
+/* App: dashboard shortcuts are two tiles (scanning moved to the camera button in the top bar) */
+.in-app .quick-actions { grid-template-columns: repeat(2, 1fr); }
+
+/* App: same shell on tablets too: side menu instead of the top links, which the app never shows */
+.in-app .app-navbar .d-xl-flex { display: none !important; }
+@media (min-width: 1200px) {
+    .in-app .nav-menu-btn { display: inline-grid !important; }
+    .in-app .app-drawer.d-xl-none { display: flex !important; }
+    .in-app .navbar-brand { margin-right: auto !important; }
+}
+
+/* App: camera button, top right */
+.capture-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    margin: 0;
+    border-radius: 50%;
+    background: var(--ss-soft);
+    color: var(--ss-primary);
+    font-size: 1.25rem;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.capture-btn:active { background: var(--ss-chip); }
+
+/* App: side menu with the account on top and Sign out at the bottom */
+.in-app .app-drawer .offcanvas-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 0.85rem;
+    border-radius: 16px;
+    background: var(--ss-surface-2);
+    color: var(--ss-text);
+    text-decoration: none;
+}
+
+.drawer-profile.active,
+.drawer-profile:active { background: var(--ss-soft); }
+
+.drawer-profile .avatar {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.1rem;
+}
+
+.drawer-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+}
+
+.btn-signout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    border-radius: 14px;
+    background: rgba(220, 38, 38, 0.08);
+    color: #dc2626;
+    font-weight: 600;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.btn-signout:active { background: rgba(220, 38, 38, 0.16); }
+.btn-signout .bi { font-size: 1.15rem; }
+
+[data-bs-theme="dark"] .btn-signout {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.3);
+    background: rgba(248, 113, 113, 0.1);
 }

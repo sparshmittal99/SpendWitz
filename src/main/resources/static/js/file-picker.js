@@ -17,7 +17,12 @@ function filePicker({ max, maxBytes, button, label }) {
         render();
     };
 
+    // What's chosen so far: picking again adds to it (handy for taking several bill photos one by one)
+    let chosen = [...input.files];
+    const sameFile = (a, b) => a.name === b.name && a.size === b.size && a.lastModified === b.lastModified;
+
     const render = () => {
+        chosen = [...input.files];
         const files = [...input.files];
         list.replaceChildren(...files.map((f, i) => {
             const li = document.createElement('li');
@@ -50,7 +55,17 @@ function filePicker({ max, maxBytes, button, label }) {
         if (label) button.lastChild.textContent = ' ' + label(files.length);
     };
 
-    input.addEventListener('change', render);
+    // Coming back to the page (browser back): start empty. The Android app has deleted its photo copies by then.
+    window.addEventListener('pageshow', e => { if (e.persisted) setFiles([]); });
+
+    input.addEventListener('change', () => {
+        const picked = [...input.files];
+        if (input.multiple && chosen.length) {
+            setFiles([...chosen, ...picked.filter(f => !chosen.some(c => sameFile(c, f)))]);
+        } else {
+            render();
+        }
+    });
     ['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('dragover'); }));
     ['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('dragover'); }));
     // Dropping adds to what's already chosen, so files can be gathered from several folders
